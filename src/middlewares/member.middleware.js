@@ -1,5 +1,10 @@
 const Board = require('../models/board.model');
-const { isMember } = require('../utils');
+const { isMember, isAdmin } = require('../utils');
+
+function ownerPermission(req, res, next) {
+  next();
+}
+
 async function adminPermission(req, res, next) {
   try {
     let userId = req.user._id;
@@ -9,7 +14,7 @@ async function adminPermission(req, res, next) {
       return res.status(404).send({message : 'Board Not Found'});
     }
    
-    if(board.members[0].userId.toString() !== userId.toString() && !board.members[0].isAdmin){
+    if(!isAdmin(board.members, userId)){
       return res.status(403).send({ message : 'Forbidden'})
     }
 
@@ -39,5 +44,6 @@ async function memberPermission(req, res, next) {
 }
 module.exports = {
   adminPermission,
-  memberPermission
+  memberPermission,
+  ownerPermission
 }

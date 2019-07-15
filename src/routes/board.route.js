@@ -10,6 +10,7 @@ const {
   deleteBoard,
   getBoard
 } = require('../controllers/board.controller');
+
 var router = express.Router();
 
 router.route('/')

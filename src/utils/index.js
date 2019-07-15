@@ -16,7 +16,20 @@ function isMember( partners, myId) {
   }
   return false;
 };
+function isAdmin( partners, myId) {
+  for(let i = 0; i < partners.length; i++) {
+    if(partners[i].userId.toString() === myId.toString() && partners[i].isAdmin === true) {
+      return true;
+    }
+  }
+  return false;
+};
+function isOwner(partners, useId) {
+  return partners[0].userId.toString() === useId.toString() && partners[0].isAdmin;
+}
 module.exports = {
   formatTitle,
   isMember,
+  isAdmin,
+  isOwner,
 }
