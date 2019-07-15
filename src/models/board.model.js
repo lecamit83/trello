@@ -20,8 +20,8 @@ const boardSchema = new Schema({
 });
 
 boardSchema.methods.toJSON = function () {
-  const user = this;
-  let obj = user.toObject();
+  const board = this;
+  let obj = board.toObject();
   //delete obj.members;
   delete obj.__v;
   return obj;
