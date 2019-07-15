@@ -1,4 +1,5 @@
 const Board = require('../models/board.model');
+const List = require('../models/list.model');
 const { validateBoard } = require('../validations/board.validation');
 function verifyBoard(req, res, next) {
   try {
@@ -14,8 +15,21 @@ function verifyBoard(req, res, next) {
   }
 }
 
-
+async function verifyList (req, res, next) {
+  try {
+    let listId = req.params.listId;
+    let list = await List.findOne({ _id : listId });
+    if(!list) {
+      return res.status(404).send({ message : 'List Not Found!' });
+    }
+    req.list = list;
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
 
 module.exports = {
   verifyBoard,
+  verifyList,
 }

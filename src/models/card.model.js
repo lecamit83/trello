@@ -20,6 +20,10 @@ let cardSchema = new Schema({
   },
   tasks : [],
   comments : [],
+  fromList : {
+    type : Schema.Types.ObjectId,
+    ref : 'List'
+  }
 });
 
 cardSchema.methods.toJSON = function () {
