@@ -28,7 +28,16 @@ async function getBoards(req, res) {
     res.status(500).send(error);
   }
 }
-
+async function getBoard(req, res) {
+  try {
+    let boardId = req.params.boardId;
+    let result = await Board.findOne({_id : boardId});
+    res.status(200).send(result);
+  
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
 async function updateBoard(req, res, next) {
   try {
     let boardName = formatTitle(req.body.title);
@@ -73,5 +82,6 @@ module.exports = {
   getBoards,
   updateBoard,
   searchBoard,
-  deleteBoard
+  deleteBoard,
+  getBoard
 }

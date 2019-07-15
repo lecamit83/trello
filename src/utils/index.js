@@ -10,7 +10,7 @@ function formatTitle(title) {
 };
 function isMember( partners, myId) {
   for(let i = 0; i < partners.length; i++) {
-    if(partners[i].personId.toString() === myId.toString()) {
+    if(partners[i].userId.toString() === myId.toString()) {
       return true;
     }
   }
