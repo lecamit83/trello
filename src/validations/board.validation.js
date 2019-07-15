@@ -11,8 +11,12 @@ function validateTitle(title) {
 }
 
 
-function validateBoard(board) {
-  board.title = formatTitle(board.title);
+function validateBoard(obj) {
+  let board = {
+    title : '',
+    members : []
+  };
+  board.title = formatTitle(obj.title);
   let errors = [];
   errors.push(...validateTitle(board.title));
   

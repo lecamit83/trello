@@ -18,6 +18,12 @@ const userSchema = new Schema({
     token: {
       type : String
     }
+  }],
+  boards : [{
+    boardId: {
+      type : Schema.Types.ObjectId,
+      ref : 'Board'
+    }
   }]
 }, {
   timestamps : true,

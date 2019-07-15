@@ -1,6 +1,7 @@
 const express = require('express');
 const { verifyAuth } = require('../middlewares/user.middleware');
-const { verifyBoard, verifyPermission } = require('../middlewares/board.middleware');
+const { verifyBoard } = require('../middlewares/board.middleware');
+const { adminPermission } = require('../middlewares/member.middleware');
 const {
   createBoard,
   getBoards,
@@ -14,7 +15,7 @@ router.route('/')
   .post(verifyAuth, verifyBoard, createBoard)
   .get(verifyAuth, getBoards);
 router.route('/:boardId')
-  .patch(verifyAuth, verifyPermission, updateBoard)
-  .delete(verifyAuth, verifyPermission, deleteBoard);
+  .patch(verifyAuth, adminPermission, updateBoard)
+  .delete(verifyAuth, adminPermission, deleteBoard);
 //search
 module.exports = router;

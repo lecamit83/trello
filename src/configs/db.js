@@ -5,7 +5,7 @@ function connect() {
   useCreateIndex : true,
   useNewUrlParser : true,
   }, function(err) {
-    if(err) return next(new Error('Database was error'));
+    if(err) throw (new Error('Database was error'));
     console.log('Database connected');
   });
 };

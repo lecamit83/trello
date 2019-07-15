@@ -4,6 +4,9 @@ async function createBoard(req, res, next) {
   try {
     var board = new Board(req.board);
     await board.save();
+    
+    req.user.boards.push({boardId : board._id});
+    await req.user.save();
 
     res.status(201).send({ message : 'Success', board });
   } catch (error) {
@@ -15,7 +18,10 @@ async function getBoards(req, res) {
   try {
 
     let id = req.user._id;
-    let results = await Board.find({'partners.personId' : id});
+    
+    let results = await Board.find({'members.userId' : id});
+
+
     res.status(200).send(results);
   
   } catch (error) {
@@ -50,9 +56,13 @@ async function searchBoard(req, res, next) {
 
 async function deleteBoard(req, res, next) {
   try {
-    let { board , participant } = req;
+    let { board } = req;
+   
+    req.user.boards = req.user.boards.filter( e => e.boardId.toString() !== board._id.toString());
+    console.log(req.user);
+    
     await board.remove();
-    await participant.remove();
+    await req.user.save();
     res.status(204).send({message : 'Board has removed!'});
   } catch (error) {
     next(error);
