@@ -14,7 +14,8 @@ const boardSchema = new Schema({
       type : Boolean,
       default : false
     }
-  }]
+  }],
+  lists : [{ list : {type : Schema.Types.ObjectId, ref : 'List'}}],
 }, {
   timestamps : true,
 });
@@ -22,8 +23,9 @@ const boardSchema = new Schema({
 boardSchema.methods.toJSON = function () {
   const board = this;
   let obj = board.toObject();
-  //delete obj.members;
   delete obj.__v;
+  delete obj.createdAt;
+  delete obj.updatedAt;
   return obj;
 }
 

@@ -1,4 +1,7 @@
 const Board = require('../models/board.model');
+const List = require('../models/list.model');
+const Card = require('../models/card.model');
+const User = require('../models/user.model');
 const { formatTitle } = require('../utils');
 async function createBoard(req, res, next) {
   try {
@@ -19,8 +22,7 @@ async function getBoards(req, res) {
 
     let id = req.user._id;
     
-    let results = await Board.find({'members.userId' : id});
-
+    let results = await Board.find({'members.userId' : id}).select('_id title');
 
     res.status(200).send(results);
   
@@ -31,7 +33,20 @@ async function getBoards(req, res) {
 async function getBoard(req, res) {
   try {
     let boardId = req.params.boardId;
-    let result = await Board.findOne({_id : boardId});
+    let result = await Board.findOne({_id : boardId})
+      .populate({
+        path : 'members.userId',
+        select : 'name email'
+      })
+      .populate({
+        path : 'lists.list',
+        select : 'title cards',
+        populate : {
+          path : 'cards.card',
+          select : 'title members',
+        }
+      })
+      .exec();
     res.status(200).send(result);
   
   } catch (error) {
@@ -65,13 +80,25 @@ async function searchBoard(req, res, next) {
 
 async function deleteBoard(req, res, next) {
   try {
+    let id = req.params.boardId;
     let { board } = req;
    
-    req.user.boards = req.user.boards.filter( e => e.boardId.toString() !== board._id.toString());
-    console.log(req.user);
+    let users = await User.find({'boards.boardId': id });
+    users.forEach(async function (user){
+      user.boards = user.boards.filter( e => e.boardId.toString() !== id.toString());
+      await user.save();
+    });
     
+    let lists = await List.find({ from : id });
+    lists.forEach(async function(list){
+      let cards = await Card.find({ from : list._id});
+      cards.forEach(async function (card) {
+        await card.remove();
+      });
+      await list.remove();
+    });
+
     await board.remove();
-    await req.user.save();
     res.status(204).send({message : 'Board has removed!'});
   } catch (error) {
     next(error);

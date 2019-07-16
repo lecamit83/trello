@@ -12,18 +12,28 @@ let cardSchema = new Schema({
       ref : 'User'
     }
   }],
-  dueDate : {
-    type : Date,
+  dueTime : {
+    date : {
+      type : String,
+    },
+    time : {
+      time : String,
+    }
   },
   description : {
     type : String,
   },
-  tasks : [],
+  tasks : [{
+    title : {
+      type : String,
+    }, 
+    isCompleted : {
+      type : Boolean,
+      default : false,
+    }
+  }],
   comments : [],
-  fromList : {
-    type : Schema.Types.ObjectId,
-    ref : 'List'
-  }
+  from : { type : Schema.Types.ObjectId, ref : 'List' },
 });
 
 cardSchema.methods.toJSON = function () {

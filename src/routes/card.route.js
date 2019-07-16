@@ -12,8 +12,9 @@ const {
 const {
   createCard,
   getCards,
-  updateNameCard,
-  deleteCard
+  updateCard,
+  deleteCard,
+  addInfo
 } = require('../controllers/card.controller');
 const router = express.Router();
 
@@ -28,6 +29,12 @@ router.route('/:boardId/:listId')
 
 
 router.route('/:boardId/:listId/:cardId')
-  .patch(verifyAuth, memberPermission, verifyList, updateNameCard)
+  .put(verifyAuth, memberPermission, verifyList, addInfo)
+  .patch(verifyAuth, memberPermission, verifyList, updateCard)
   .delete(verifyAuth, memberPermission, verifyList, deleteCard);
+
+router.route('/:boardId/:listId/:cardId/members')
+  .get()
+  .post()
+  .delete();
 module.exports = router;
