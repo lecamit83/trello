@@ -21,7 +21,7 @@ async function createCard(req, res, next) {
 async function getCards(req, res, next) {
   try {
     let listId = req.params.listId;
-    let cards = await Card.find({ from : listId }).select('title');
+    let cards = await Card.find({ from : listId }).select('title members');
     res.status(200).send({cards});
   } catch (error) {
     next(error);

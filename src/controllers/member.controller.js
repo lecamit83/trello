@@ -1,4 +1,5 @@
 const User = require('../models/user.model');
+const Card = require('../models/card.model');
 const { isMember, isOwner } = require('../utils');
 async function inviteMember(req, res, next) {
   try {
@@ -25,6 +26,46 @@ async function inviteMember(req, res, next) {
   }
 }
 
+async function addMemberIntoCard(req, res, next) {
+  try {
+    let email = req.body.email.trim();
+    let user = await User.findOne({ email });
+    if(!user) {
+      return res.status(404).send({ message : 'User Not Found!'});
+    }
+    let board = req.board;
+
+    if(!isMember(board.members, user._id)) {
+      return res.status(404).send({ message : 'Member isn\'t exist!'});
+    }
+    let card = req.card;
+    
+    
+    card.members.push({user : user._id});
+    
+    await card.save();
+    res.status(201).send({ message : 'invite member into card success' });
+  } catch (error) {
+    next(error);
+  }
+}
+async function removeMemberInCard(req, res, next) {
+  try {
+    let card = req.card;
+    let userId = req.params.userId;
+
+    card.members = card.members.filter(function (e) {
+      return e.user.toString() !== userId.toString();
+    });
+    
+    await card.save();
+
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+}
+
 async function removeMember(req, res, next) {
   try {
     let board = req.board;
@@ -45,9 +86,19 @@ async function removeMember(req, res, next) {
     user.boards = user.boards.filter(function(board) {
       return board.boardId.toString() !== req.params.boardId.toString();
     });
+
+    let cards = await Card.find({ 'members.user' : userId });
+    
+    cards.forEach(async function(card){
+      card.members = card.members.filter(function(e) {
+        return e.user.toString() !== userId.toString();
+      });
+      await card.save();
+    });
+
     await board.save();
     await user.save();
-    res.status(200).send({message : 'User was removed!'});
+    res.status(204).send({message : 'User was removed!'});
 
   } catch (error) {
     console.log(error);
@@ -88,4 +139,6 @@ module.exports = {
   inviteMember,
   removeMember,
   updatePermission,
+  addMemberIntoCard,
+  removeMemberInCard
 }

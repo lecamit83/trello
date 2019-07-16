@@ -7,7 +7,7 @@ let cardSchema = new Schema({
     required : true,
   },
   members : [{
-    userId : {
+    user : {
       type : Schema.Types.ObjectId,
       ref : 'User'
     }

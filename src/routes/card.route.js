@@ -6,7 +6,8 @@ const {
   adminPermission, memberPermission
 } = require('../middlewares/member.middleware');
 const {
-  verifyList
+  verifyList,
+  verifyCard
 } = require('../middlewares/board.middleware');
 
 const {
@@ -16,6 +17,11 @@ const {
   deleteCard,
   addInfo
 } = require('../controllers/card.controller');
+
+const {
+  addMemberIntoCard,
+  removeMemberInCard
+} = require('../controllers/member.controller');
 const router = express.Router();
 
 router.route('/')
@@ -34,7 +40,10 @@ router.route('/:boardId/:listId/:cardId')
   .delete(verifyAuth, memberPermission, verifyList, deleteCard);
 
 router.route('/:boardId/:listId/:cardId/members')
-  .get()
-  .post()
-  .delete();
+  .post(verifyAuth, memberPermission, verifyList, verifyCard, addMemberIntoCard);
+
+
+router.route('/:boardId/:listId/:cardId/members/:userId')
+  .delete(verifyAuth, memberPermission, verifyList, verifyCard, removeMemberInCard);
+
 module.exports = router;

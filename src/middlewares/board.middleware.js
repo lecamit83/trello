@@ -1,5 +1,7 @@
 const Board = require('../models/board.model');
 const List = require('../models/list.model');
+const Card = require('../models/card.model');
+
 const { validateBoard } = require('../validations/board.validation');
 function verifyBoard(req, res, next) {
   try {
@@ -28,8 +30,22 @@ async function verifyList (req, res, next) {
     next(error);
   }
 }
+async function verifyCard(req, res, next) {
+  try {
+    let cardId = req.params.cardId;
+    let card = await Card.findOne({ _id : cardId });
+    if(!card) {
+      return res.status(404).send({ message : 'Card Not Found!' });
+    }
+    req.card = card;
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
 
 module.exports = {
   verifyBoard,
   verifyList,
+  verifyCard
 }
