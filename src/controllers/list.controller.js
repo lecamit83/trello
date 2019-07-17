@@ -26,7 +26,7 @@ async function createList(req, res, next) {
       from : req.board._id
     });
     let board = req.board;
-    board.lists.push(list._id);
+    board.lists.push({list : list._id});
     await list.save();
     await board.save();
     res.status(201).send({ message : 'Created New List! '});

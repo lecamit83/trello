@@ -28,9 +28,9 @@ function isOwner(partners, useId) {
   return partners[0].userId.toString() === useId.toString() && partners[0].isAdmin;
 }
 function isValidDate(s) {
-  let bits = s.split('/'),
-      d = new Date(bits[2] + '/' + bits[0] + '/' + bits[1]);
-  return (d && ((d.getMonth() + 1) == bits[0] && d.getDate() == Number(bits[1])));
+  let bits = s.split('/');
+  let d = new Date(bits[2] + '/' + bits[0] + '/' + bits[1]);
+  return (d && ((d.getMonth() + 1) == Number(bits[0]) && d.getDate() == Number(bits[1])));
 }
 function isEmpty(s) {
   return s.trim().length === 0;

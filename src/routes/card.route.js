@@ -50,7 +50,7 @@ router.route('/boards/:boardId/cards/:cardId')
   .get(verifyAuth, memberPermission, getCard)
   .put(verifyAuth, memberPermission, verifyCard, changeList);
 
-router.route('boards/:boardId/cards/:cardId/members')
+router.route('/boards/:boardId/cards/:cardId/members')
   .post(verifyAuth, memberPermission, verifyCard, addMemberIntoCard);
 
 

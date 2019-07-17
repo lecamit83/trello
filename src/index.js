@@ -7,7 +7,7 @@ const apiRoute = require('./routes/api.route');
 const PORT = process.env.PORT || 3000;
 const app = express();
 // connect database
-db.connect();
+db.localConnect();
 // middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended : false }));
@@ -28,3 +28,4 @@ app.listen(PORT, function(err) {
   if(err) throw new Error(err);
   console.log(`Server is running on PORT=${PORT}`);
 });
+module.exports = app;

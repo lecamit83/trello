@@ -48,7 +48,7 @@ async function getBoard(req, res) {
         select : 'title cards',
         populate : {
           path : 'cards.card',
-          select : 'title members',
+          select : 'title members dueTime',
           populate : {
             path: 'members.user',
             select : 'name'

@@ -200,8 +200,8 @@ async function createdDueTime(req, res, next) {
   try {
     let cardId = req.params.cardId,
         dueTime = req.body.dueTime;
-    
-    if(isValidDate(dueTime)) {
+  
+    if(!isValidDate(dueTime.toString())) {
       return res.status(400).send({ message: 'Invalid Date, format : mm/dd/yyyy'});
     }
     let card = await Card.findById(cardId);
