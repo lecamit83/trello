@@ -52,7 +52,7 @@ async function verifyAuth(req, res, next) {
     req.token = token;
     next();
   } catch (error) {
-    return next(error);
+    return res.status(401).send({message : 'Unauthorized'});
   }
 }
 

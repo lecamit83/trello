@@ -27,9 +27,19 @@ function isAdmin( partners, myId) {
 function isOwner(partners, useId) {
   return partners[0].userId.toString() === useId.toString() && partners[0].isAdmin;
 }
+function isValidDate(s) {
+  let bits = s.split('/'),
+      d = new Date(bits[2] + '/' + bits[0] + '/' + bits[1]);
+  return (d && ((d.getMonth() + 1) == bits[0] && d.getDate() == Number(bits[1])));
+}
+function isEmpty(s) {
+  return s.trim().length === 0;
+}
 module.exports = {
   formatTitle,
   isMember,
   isAdmin,
   isOwner,
+  isValidDate,
+  isEmpty
 }

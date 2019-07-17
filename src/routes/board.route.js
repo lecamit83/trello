@@ -6,17 +6,16 @@ const {
   createBoard,
   getBoards,
   updateBoard,
-  searchBoard,
   deleteBoard,
   getBoard
 } = require('../controllers/board.controller');
 
 var router = express.Router();
 
-router.route('/')
+router.route('/boards')
   .post(verifyAuth, verifyBoard, createBoard)
   .get(verifyAuth, getBoards);
-router.route('/:boardId')
+router.route('/boards/:boardId')
   .patch(verifyAuth, adminPermission, updateBoard)
   .delete(verifyAuth, adminPermission, deleteBoard)
   .get(verifyAuth, getBoard);

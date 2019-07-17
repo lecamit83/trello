@@ -3,7 +3,8 @@ const {
   verifyAuth
 } = require('../middlewares/user.middleware');
 const {
-  adminPermission, memberPermission
+  adminPermission, 
+  memberPermission
 } = require('../middlewares/member.middleware');
 const {
   verifyList,
@@ -15,7 +16,16 @@ const {
   getCards,
   updateCard,
   deleteCard,
-  addInfo
+  addComment,
+  deletedComment,
+  getCard,
+  createdTask,
+  deletedTask,
+  createdContentTask,
+  deletedContentTask,
+  createdDueTime,
+  createdDescription,
+  changeList
 } = require('../controllers/card.controller');
 
 const {
@@ -29,21 +39,43 @@ router.route('/')
     res.send('card');
   })
 
-router.route('/:boardId/:listId')
+router.route('/boards/:boardId/lists/:listId/cards')
   .post(verifyAuth, memberPermission, verifyList, createCard)
   .get(verifyAuth, memberPermission, verifyList, getCards);
 
 
-router.route('/:boardId/:listId/:cardId')
-  .put(verifyAuth, memberPermission, verifyList, addInfo)
-  .patch(verifyAuth, memberPermission, verifyList, updateCard)
-  .delete(verifyAuth, memberPermission, verifyList, deleteCard);
+router.route('/boards/:boardId/cards/:cardId')
+  .patch(verifyAuth, memberPermission, updateCard)
+  .delete(verifyAuth, memberPermission, deleteCard)
+  .get(verifyAuth, memberPermission, getCard)
+  .put(verifyAuth, memberPermission, verifyCard, changeList);
 
-router.route('/:boardId/:listId/:cardId/members')
-  .post(verifyAuth, memberPermission, verifyList, verifyCard, addMemberIntoCard);
+router.route('boards/:boardId/cards/:cardId/members')
+  .post(verifyAuth, memberPermission, verifyCard, addMemberIntoCard);
 
 
-router.route('/:boardId/:listId/:cardId/members/:userId')
-  .delete(verifyAuth, memberPermission, verifyList, verifyCard, removeMemberInCard);
+router.route('/boards/:boardId/cards/:cardId/members/:userId')
+  .delete(verifyAuth, memberPermission, verifyCard, removeMemberInCard);
 
+router.route('/boards/:boardId/cards/:cardId/comments')
+  .post(verifyAuth, memberPermission, verifyCard, addComment);
+
+router.route('/boards/:boardId/lists/:listId/cards/:cardId/comments/:idx')
+  .delete(verifyAuth, adminPermission, deletedComment);  
+
+
+router.route('/boards/:boardId/cards/:cardId/tasks')
+  .post(verifyAuth, memberPermission, createdTask)
+  
+router.route('/boards/:boardId/cards/:cardId/tasks/:taskId')
+  .post(verifyAuth, memberPermission, createdContentTask)
+  .delete(verifyAuth, memberPermission, deletedTask)
+
+router.route('/boards/:boardId/cards/:cardId/tasks/:taskId/contents/:idx')
+  .delete(verifyAuth, memberPermission, deletedContentTask)
+
+router.route('/boards/:boardId/cards/:cardId/duetime')
+  .post(verifyAuth, memberPermission, createdDueTime);
+router.route('/boards/:boardId/cards/:cardId/description')
+  .post(verifyAuth, memberPermission, verifyCard, createdDescription)
 module.exports = router;

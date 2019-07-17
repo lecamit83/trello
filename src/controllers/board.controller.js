@@ -2,7 +2,7 @@ const Board = require('../models/board.model');
 const List = require('../models/list.model');
 const Card = require('../models/card.model');
 const User = require('../models/user.model');
-const { formatTitle } = require('../utils');
+const { formatTitle ,isEmpty } = require('../utils');
 async function createBoard(req, res, next) {
   try {
     var board = new Board(req.board);
@@ -19,11 +19,16 @@ async function createBoard(req, res, next) {
 
 async function getBoards(req, res) {
   try {
+    let q = req.query.q || '',
+        id = req.user._id;
+    let results;
 
-    let id = req.user._id;
-    
-    let results = await Board.find({'members.userId' : id}).select('_id title');
-
+    if(isEmpty(q)) { 
+      results = await Board.find({'members.userId' : id}).select('_id title').exec();  
+    } else {
+      let regex = new RegExp(q, 'i'); 
+      results = await Board.find({ 'members.userId' : id, title : regex }).select('_id title');
+    }
     res.status(200).send(results);
   
   } catch (error) {
@@ -69,18 +74,6 @@ async function updateBoard(req, res, next) {
   }
 }
 
-async function searchBoard(req, res, next) {
-  try {
-    let regex = new RegExp(req.params.title, 'i'); 
-    let results = await Board.find({ title : regex });
-    if(!results) {
-      return res.status(404).send({message : 'Board Not Found!'});
-    }
-    res.status(200).send(results)
-  } catch (error) {
-    next(error);
-  }
-}
 
 async function deleteBoard(req, res, next) {
   try {
@@ -112,7 +105,6 @@ module.exports = {
   createBoard,
   getBoards,
   updateBoard,
-  searchBoard,
   deleteBoard,
   getBoard
 }

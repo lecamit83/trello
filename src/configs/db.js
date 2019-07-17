@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { DB_USER, DB_PASS, DB_HOST } = process.env;
+
 function connect() {
   mongoose.connect(`mongodb://${DB_USER}:${DB_PASS}@${DB_HOST}`, {
   useCreateIndex : true,

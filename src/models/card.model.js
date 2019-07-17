@@ -12,27 +12,13 @@ let cardSchema = new Schema({
       ref : 'User'
     }
   }],
-  dueTime : {
-    date : {
-      type : String,
-    },
-    time : {
-      time : String,
-    }
-  },
-  description : {
-    type : String,
-  },
+  dueTime : String,
+  description : String,
   tasks : [{
-    title : {
-      type : String,
-    }, 
-    isCompleted : {
-      type : Boolean,
-      default : false,
-    }
+    title : String,
+    contents : [String]
   }],
-  comments : [],
+  comments : [String],
   from : { type : Schema.Types.ObjectId, ref : 'List' },
 });
 

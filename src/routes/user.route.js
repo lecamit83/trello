@@ -17,13 +17,13 @@ const {
 } = require('../middlewares/user.middleware');
 router.route('/')
   .get(getHomePage);
-router.route('/register')
+router.route('users/register')
   .post(verifyRegister , registerUser);
-router.route('/login')
+router.route('users/login')
   .post(verifyLogin, loggedIn);
-router.route('/logout')
+router.route('users/logout')
   .post(verifyAuth, loggedOut);
-router.route('/profile/me')
+router.route('users/profile/me')
   .get(verifyAuth, getProfile)
   .patch(verifyAuth, updateProfile)
 // Error Handler User
