@@ -18,7 +18,14 @@ let cardSchema = new Schema({
     title : String,
     contents : [String]
   }],
-  comments : [String],
+  comments : [{
+    user : {
+      type : Schema.Types.ObjectId,
+      ref : 'User'
+    },
+    comment : String,
+
+  }],
   from : { type : Schema.Types.ObjectId, ref : 'List' },
 });
 

@@ -9,7 +9,11 @@ async function getLists(req, res, next) {
     let lists = await List.find({ from : boardId })
       .populate({
         path : 'cards.card',
-        select : 'title from'
+        select : 'title members dueTime',
+        populate : {
+          path : 'members.user',
+          select : 'name',
+        }
       })
       .exec();
 

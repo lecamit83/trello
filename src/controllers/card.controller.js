@@ -1,7 +1,7 @@
 const Card = require('../models/card.model');
 const List = require('../models/list.model');
 const { validate, validateTitle } = require('../validations/card.validation');
-const { isValidDate, isEmpty } = require('../utils');
+const { isValidDate, isEmpty, isAdmin, isOwner } = require('../utils');
 async function createCard(req, res, next) {  
   try {
     const errors = validateTitle(req.body.title);
@@ -24,7 +24,11 @@ async function createCard(req, res, next) {
 async function getCards(req, res, next) {
   try {
     let listId = req.params.listId;
-    let cards = await Card.find({ from : listId }).select('title members');
+    let cards = await Card.find({ from : listId })
+      .populate({
+        path : 'members.user',
+        select : 'name',
+      });
     res.status(200).send({cards});
   } catch (error) {
     next(error);
@@ -34,7 +38,17 @@ async function getCards(req, res, next) {
 async function getCard(req, res, next) {
   try {
     let cardId = req.params.cardId;
-    let card = await Card.findOne({ _id : cardId });
+    let card = await Card.findOne({ _id : cardId })
+      .populate({
+        path : 'members.user',
+        select : 'name'
+      })
+      .populate({
+        path : 'comments.user',
+        select : 'name'
+      })
+      .exec();
+    if(!card) { return res.status(404).send({ members : 'Card Not Found!'});}
     res.status(200).send({card});
   } catch (error) {
     next(error);
@@ -98,13 +112,15 @@ async function createdTask(req, res, next) {
 }
 async function deletedTask(req, res, next) {
   try {
-    let task = req.body.task;
-    if(!task) return res.status(400).send({ message : 'Empty Task'});
-    
+    let taskId = req.params.taskId;
+   
     let cardId = req.params.cardId;
     let card = await Card.findById(cardId);
     if(!card) return res.status(404).send({ message : 'Card Not Found!'});
-    card.tasks = [];
+    
+    card.tasks = card.tasks.filter(function(task){
+      return task._id.toString() !== taskId.toString();
+    });
 
     await card.save();
 
@@ -163,10 +179,10 @@ async function deletedContentTask(req, res, next) {
 
 async function addComment(req, res, next) {
   try {
-    let comment = req.body.comment;
-    
-    let card = req.card;
-    card.comments.push(comment);
+    let comment = req.body.comment,
+        user = req.user._id,
+        card = req.card;
+    card.comments.push({user, comment});
     await card.save();
 
     res.status(201).send({message : 'Add Comment Success'});
@@ -174,6 +190,39 @@ async function addComment(req, res, next) {
     next(error);
   }
 }
+
+async function updatedComment(req, res, next) {
+ 
+  try {
+    let idx = req.params.idx,
+        comment = req.body.comment || '',
+        cardId = req.params.cardId,
+        board = req.board;
+    
+    if(isNaN(idx)) {return res.status(400).send({message : 'Invalid Number!'});}
+    
+    index = Number.parseInt(idx);
+
+    let card = await Card.findOne({ _id : cardId });
+    if(!card) { return res.status(404).send({message : 'Card Not Found!'});}
+    if(index > card.comments.length || index < 0) { return res.status(404).send({message : 'Card Not Found!'});}
+    // check is own's comment or admin board
+    let userId = req.user._id;
+    if(!isOwner(card.comments[index].user , userId) || !isAdmin(board.members, userId)) {
+      return res.status(403).send({message : 'Forbidden'});
+    }
+
+    card.comments[idx].comment = comment;
+
+    await card.save();
+
+    res.status(200).send({ message : 'Update Comment Success'});
+
+  } catch (error) {
+    next(error);
+  }
+}
+
 async function deletedComment(req, res, next) {
   try {
     let idx = req.params.idx,
@@ -189,29 +238,44 @@ async function deletedComment(req, res, next) {
     
     await card.save();
 
-    res.status(201).send({message : 'Add Comment Success'});
+    res.status(204).send({message : 'Delete Comment Success'});
   } catch (error) {
     next(error);
   }
 }
 
 async function createdDueTime(req, res, next) {
-  
   try {
-    let cardId = req.params.cardId,
-        dueTime = req.body.dueTime;
+    let dueTime = req.body.dueTime;
   
     if(!isValidDate(dueTime.toString())) {
       return res.status(400).send({ message: 'Invalid Date, format : mm/dd/yyyy'});
     }
-    let card = await Card.findById(cardId);
-
-    if(!card) return res.status(404).send({ message : 'Card Not Found!'});
-
+    
+    let card = req.card;
+    let statusCode, message;
+    
+    if(!card.dueTime) {
+      statusCode = 201; message = 'Create Due Time success!';
+    }else {
+      statusCode = 200; message = 'Update Due Time success!';
+    }
+    
     card.dueTime = dueTime;
     await card.save();
+    res.status(statusCode).send({ message });
+  
+  } catch (error) {
+    next(error);
+  }
+}
 
-    res.status(201).send({ message : 'Create Due Time success!'});
+async function deletedDueTime(req, res, next) {
+  try {
+    let card = req.card;
+    card.dueTime = undefined;
+    await card.save();
+    res.status(204).send({message : 'Deleted DueTime'});
   } catch (error) {
     next(error);
   }
@@ -222,10 +286,26 @@ async function createdDescription(req, res, next) {
     let description = req.body.description || '';
     if(isEmpty(description)) { return res.status(400).send({ message : 'Description is Empty!' }); }
     
+    if(!req.card.description) {
+      statusCode = 201; message = 'Create Description success!';
+    }else {
+      statusCode = 200; message = 'Update Description success!';
+    }
     req.card.description = description;
     await req.card.save();
 
-    res.status(201).send({ message : 'Create Description' });
+    res.status(statusCode).send({ message });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function deletedDescription(req, res, next) {
+  try {
+    let card = req.card;
+    card.description = undefined;
+    await card.save();
+    res.status(204).send({message : 'Deleted Description'});
   } catch (error) {
     next(error);
   }
@@ -266,11 +346,14 @@ module.exports = {
   deleteCard,
   addComment,
   deletedComment,
+  updatedComment,
   createdTask,
   deletedTask,
   createdContentTask,
   deletedContentTask,
   createdDueTime,
+  deletedDueTime,
   createdDescription,
+  deletedDescription,
   changeList
 }

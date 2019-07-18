@@ -18,13 +18,16 @@ const {
   deleteCard,
   addComment,
   deletedComment,
+  updatedComment,
   getCard,
   createdTask,
   deletedTask,
   createdContentTask,
   deletedContentTask,
   createdDueTime,
+  deletedDueTime,
   createdDescription,
+  deletedDescription,
   changeList
 } = require('../controllers/card.controller');
 
@@ -60,9 +63,9 @@ router.route('/boards/:boardId/cards/:cardId/members/:userId')
 router.route('/boards/:boardId/cards/:cardId/comments')
   .post(verifyAuth, memberPermission, verifyCard, addComment);
 
-router.route('/boards/:boardId/lists/:listId/cards/:cardId/comments/:idx')
-  .delete(verifyAuth, adminPermission, deletedComment);  
-
+router.route('/boards/:boardId/cards/:cardId/comments/:idx')
+  .delete(verifyAuth, adminPermission, deletedComment)
+  .patch(verifyAuth, memberPermission ,updatedComment);
 
 router.route('/boards/:boardId/cards/:cardId/tasks')
   .post(verifyAuth, memberPermission, createdTask)
@@ -75,7 +78,10 @@ router.route('/boards/:boardId/cards/:cardId/tasks/:taskId/contents/:idx')
   .delete(verifyAuth, memberPermission, deletedContentTask)
 
 router.route('/boards/:boardId/cards/:cardId/duetime')
-  .post(verifyAuth, memberPermission, createdDueTime);
+  .put(verifyAuth, memberPermission, verifyCard, createdDueTime)
+  .delete(verifyAuth, memberPermission, verifyCard, deletedDueTime);
 router.route('/boards/:boardId/cards/:cardId/description')
-  .post(verifyAuth, memberPermission, verifyCard, createdDescription)
+  .put(verifyAuth, memberPermission, verifyCard, createdDescription)
+  .delete(verifyAuth, memberPermission, verifyCard, deletedDescription);
+
 module.exports = router;

@@ -24,8 +24,8 @@ function isAdmin( partners, myId) {
   }
   return false;
 };
-function isOwner(partners, useId) {
-  return partners[0].userId.toString() === useId.toString() && partners[0].isAdmin;
+function isOwner(ownerId, myId) {
+  return ownerId.toString() === myId.toString();
 }
 function isValidDate(s) {
   let bits = s.split('/');
