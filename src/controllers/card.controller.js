@@ -37,8 +37,10 @@ async function getCards(req, res, next) {
 
 async function getCard(req, res, next) {
   try {
-    let cardId = req.params.cardId;
-    let card = await Card.findOne({ _id : cardId })
+    let cardId = req.params.cardId,
+        listId = req.body.listId;
+
+    let card = await Card.findOne({ _id : cardId , from : listId })
       .populate({
         path : 'members.user',
         select : 'name'
@@ -60,8 +62,9 @@ async function updateCard(req, res, next) {
     let title = req.body.title || '';
     if(isEmpty(title)) return res.status(400).send({message : 'Title is Empty'});
     
-    let cardId = req.params.cardId;
-    let updatedCard = await Card.findById(cardId);
+    let cardId = req.params.cardId,
+        listId = req.body.listId;
+    let updatedCard = await Card.findOne({ _id : cardId , from : listId });
     if(!updatedCard) return res.status(404).send({message : 'Card Not Found!'});
     updatedCard.title = title;
     await updatedCard.save();
@@ -98,9 +101,8 @@ async function createdTask(req, res, next) {
     let task = req.body.task;
     if(!task) return res.status(400).send({ message : 'Empty Task'});
     
-    let cardId = req.params.cardId;
-    let card = await Card.findById(cardId);
-    if(!card) return res.status(404).send({ message : 'Card Not Found!'});
+    let card = req.card;
+    
     card.tasks.push({ title : task , contents : [] });
 
     await card.save();
@@ -195,16 +197,14 @@ async function updatedComment(req, res, next) {
  
   try {
     let idx = req.params.idx,
-        comment = req.body.comment || '',
-        cardId = req.params.cardId,
-        board = req.board;
-    
+        comment = req.body.comment || '';
+        
+    const {board, card} = req;
+
     if(isNaN(idx)) {return res.status(400).send({message : 'Invalid Number!'});}
     
     index = Number.parseInt(idx);
 
-    let card = await Card.findOne({ _id : cardId });
-    if(!card) { return res.status(404).send({message : 'Card Not Found!'});}
     if(index > card.comments.length || index < 0) { return res.status(404).send({message : 'Card Not Found!'});}
     // check is own's comment or admin board
     let userId = req.user._id;
@@ -225,13 +225,14 @@ async function updatedComment(req, res, next) {
 
 async function deletedComment(req, res, next) {
   try {
-    let idx = req.params.idx,
-        cardId = req.params.cardId;
-    
-    let card = await Card.findOne({_id : cardId});
-    if(!card) {
-      return res.status(404).send({ message : 'Card Not Found!'});
+    let idx = req.params.idx;
+    const {board, card} = req;
+
+    let userId = req.user._id;
+    if(!isAdmin(board.membersm, userId)) {
+      return res.status(403).send({message : 'Forbidden'});
     }
+
     card.comments = card.comments.filter(function(message , index) {
       if(index.toString() !== idx) return message;
     });

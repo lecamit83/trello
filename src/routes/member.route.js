@@ -8,10 +8,10 @@ const {
   updatePermission
 } = require('../controllers/member.controller');
 
-router.route('/boards/:boardId/members')
+router.route('/members')
   .post(verifyAuth, memberPermission, inviteMember);
 
-router.route('boards/:boardId/members/:userId')
+router.route('/members/:userId')
   .delete(verifyAuth, adminPermission, removeMember)
   .patch(verifyAuth, adminPermission, updatePermission);
 

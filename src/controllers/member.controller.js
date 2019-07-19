@@ -74,17 +74,14 @@ async function removeMember(req, res, next) {
     if(!isMember(board.members, userId)) {
       return res.status(400).send({ message : 'User NOT in Board' })
     }
-    if(isOwner(board.members, userId)) {
-      return res.status(403).send({ message : 'Cannot remove OWNER board!' })
-    }
-    
+
     board.members = board.members.filter(function(member) {
       return member.userId.toString() !== userId.toString();
     });
     
     let user = await User.findById(userId);
     user.boards = user.boards.filter(function(board) {
-      return board.boardId.toString() !== req.params.boardId.toString();
+      return board.boardId.toString() !== board._id.toString();
     });
 
     let cards = await Card.find({ 'members.user' : userId });

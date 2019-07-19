@@ -19,7 +19,10 @@ function verifyBoard(req, res, next) {
 
 async function verifyList (req, res, next) {
   try {
-    let listId = req.params.listId;
+    const listId = req.body.listId;
+    if(!listId) {
+      return res.status(400).send({message : 'List ID is Empty!'});
+    }
     let list = await List.findOne({ _id : listId });
     if(!list) {
       return res.status(404).send({ message : 'List Not Found!' });
@@ -32,8 +35,9 @@ async function verifyList (req, res, next) {
 }
 async function verifyCard(req, res, next) {
   try {
-    let cardId = req.params.cardId;
-    let card = await Card.findOne({ _id : cardId });
+    let cardId = req.params.cardId ,
+        listId = req.body.listId;
+    let card = await Card.findOne({ _id : cardId, from : listId });
     if(!card) {
       return res.status(404).send({ message : 'Card Not Found!' });
     }

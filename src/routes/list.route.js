@@ -13,11 +13,11 @@ const router = express.Router();
 
 
 
-router.route('/boards/:boardId/lists')
+router.route('/lists')
   .get(verifyAuth, memberPermission, getLists)
   .post(verifyAuth, memberPermission, createList)
 
-router.route('/boards/:boardId/lists/:listId')
+router.route('/lists/:listId')
   .patch(verifyAuth, memberPermission, updateList)
   .delete(verifyAuth , memberPermission, deleteList);
 

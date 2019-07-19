@@ -8,7 +8,10 @@ function ownerPermission(req, res, next) {
 async function adminPermission(req, res, next) {
   try {
     let userId = req.user._id;
-    let boardId = req.params.boardId;
+    const boardId = req.body.boardId;
+    if(!boardId) {
+      return res.status(400).send({message : 'Board ID is Empty!'});
+    }
     let board = await Board.findOne({_id : boardId});
     if(!board) {
       return res.status(404).send({message : 'Board Not Found'});
@@ -27,8 +30,11 @@ async function adminPermission(req, res, next) {
 
 async function memberPermission(req, res, next) {
   try {
-    let userId = req.user._id;
-    let boardId = req.params.boardId;
+    const userId = req.user._id;
+    const boardId = req.body.boardId;
+    if(!boardId) {
+      return res.status(400).send({message : 'Board ID is Empty!'});
+    }
     let board = await Board.findOne({_id : boardId});
     if(!board) {
       return res.status(404).send({message : 'Board Not Found'});
