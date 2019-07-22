@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { verifyAuth } = require('../middlewares/user.middleware');
+const { isAuth } = require('../middlewares/user.middleware');
 const { adminPermission, memberPermission } = require('../middlewares/member.middleware');
 const {
   inviteMember,
@@ -9,11 +9,11 @@ const {
 } = require('../controllers/member.controller');
 
 router.route('/members')
-  .post(verifyAuth, memberPermission, inviteMember);
+  .post(isAuth, memberPermission, inviteMember);
 
 router.route('/members/:userId')
-  .delete(verifyAuth, adminPermission, removeMember)
-  .patch(verifyAuth, adminPermission, updatePermission);
+  .delete(isAuth, adminPermission, removeMember)
+  .patch(isAuth, adminPermission, updatePermission);
 
   module.exports = router;
 

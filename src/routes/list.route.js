@@ -1,5 +1,5 @@
 const express = require('express');
-const { verifyAuth } = require('../middlewares/user.middleware');
+const { isAuth } = require('../middlewares/user.middleware');
 const { memberPermission } = require('../middlewares/member.middleware');
 
 const {
@@ -14,11 +14,11 @@ const router = express.Router();
 
 
 router.route('/lists')
-  .get(verifyAuth, memberPermission, getLists)
-  .post(verifyAuth, memberPermission, createList)
+  .get(isAuth, memberPermission, getLists)
+  .post(isAuth, memberPermission, createList)
 
 router.route('/lists/:listId')
-  .patch(verifyAuth, memberPermission, updateList)
-  .delete(verifyAuth , memberPermission, deleteList);
+  .patch(isAuth, memberPermission, updateList)
+  .delete(isAuth , memberPermission, deleteList);
 
 module.exports = router;

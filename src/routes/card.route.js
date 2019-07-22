@@ -1,7 +1,5 @@
 const express = require('express');
-const {
-  verifyAuth
-} = require('../middlewares/user.middleware');
+const { isAuth } = require('../middlewares/user.middleware');
 const {
   adminPermission, 
   memberPermission
@@ -37,51 +35,47 @@ const {
 } = require('../controllers/member.controller');
 const router = express.Router();
 
-router.route('/')
-  .get((req, res) => {
-    res.send('card');
-  })
 
 router.route('/cards')
-  .post(verifyAuth, memberPermission, verifyList, createCard)
-  .get(verifyAuth, memberPermission, verifyList, getCards);
+  .post(isAuth, memberPermission, verifyList, createCard)
+  .get(isAuth, memberPermission, verifyList, getCards);
 
 
 router.route('/cards/:cardId')
-  .patch(verifyAuth, memberPermission, updateCard)
-  .delete(verifyAuth, memberPermission, deleteCard)
-  .get(verifyAuth, memberPermission, getCard)
-  .put(verifyAuth, memberPermission, verifyCard, changeList);
+  .patch(isAuth, memberPermission, updateCard)
+  .delete(isAuth, memberPermission, deleteCard)
+  .get(isAuth, memberPermission, getCard)
+  .put(isAuth, memberPermission, verifyCard, changeList);
 
 router.route('/cards/:cardId/members')
-  .post(verifyAuth, memberPermission, verifyCard, addMemberIntoCard);
+  .post(isAuth, memberPermission, verifyCard, addMemberIntoCard);
 
 
 router.route('/cards/:cardId/members/:userId')
-  .delete(verifyAuth, memberPermission, verifyCard, removeMemberInCard);
+  .delete(isAuth, memberPermission, verifyCard, removeMemberInCard);
 
 router.route('/cards/:cardId/comments')
-  .post(verifyAuth, memberPermission, verifyCard, addComment);
+  .post(isAuth, memberPermission, verifyCard, addComment);
 
 router.route('/cards/:cardId/comments/:idx')
-  .delete(verifyAuth, adminPermission, verifyCard, deletedComment)
-  .patch(verifyAuth, memberPermission, verifyCard, updatedComment);
+  .delete(isAuth, adminPermission, verifyCard, deletedComment)
+  .patch(isAuth, memberPermission, verifyCard, updatedComment);
 
 router.route('/cards/:cardId/tasks')
-  .post(verifyAuth, memberPermission, verifyCard, createdTask)
+  .post(isAuth, memberPermission, verifyCard, createdTask)
   
 router.route('/cards/:cardId/tasks/:taskId')
-  .post(verifyAuth, memberPermission, createdContentTask)
-  .delete(verifyAuth, memberPermission, deletedTask)
+  .post(isAuth, memberPermission, createdContentTask)
+  .delete(isAuth, memberPermission, deletedTask)
 
 router.route('/cards/:cardId/tasks/:taskId/contents/:idx')
-  .delete(verifyAuth, memberPermission, deletedContentTask)
+  .delete(isAuth, memberPermission, deletedContentTask)
 
 router.route('/cards/:cardId/duetime')
-  .put(verifyAuth, memberPermission, verifyCard, createdDueTime)
-  .delete(verifyAuth, memberPermission, verifyCard, deletedDueTime);
+  .put(isAuth, memberPermission, verifyCard, createdDueTime)
+  .delete(isAuth, memberPermission, verifyCard, deletedDueTime);
 router.route('/cards/:cardId/description')
-  .put(verifyAuth, memberPermission, verifyCard, createdDescription)
-  .delete(verifyAuth, memberPermission, verifyCard, deletedDescription);
+  .put(isAuth, memberPermission, verifyCard, createdDescription)
+  .delete(isAuth, memberPermission, verifyCard, deletedDescription);
 
 module.exports = router;

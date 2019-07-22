@@ -7,7 +7,7 @@ const apiRoute = require('./routes/api.route');
 const PORT = process.env.PORT || 3000;
 const app = express();
 // connect database
-db.localConnect();
+db.connect();
 // middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended : false }));

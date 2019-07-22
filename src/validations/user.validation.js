@@ -1,5 +1,15 @@
 const validator = require('validator');
 
+/**
+ * @name validateEmail
+ * @description 
+ *  check Email is valided?
+ *  
+ * 
+ * @param {String} email 
+ * 
+ * @returns { [Object] } errors
+ */
 function validateEmail(email) {
   let errors = [];
   if(validator.isEmpty(email)) {
@@ -9,6 +19,17 @@ function validateEmail(email) {
   }
   return errors;
 }
+
+/**
+ * @name validatePassword
+ * @description 
+ *  check Password is valided?
+ *  
+ * 
+ * @param {String} password 
+ * 
+ * @returns { [Object] } errors
+ */
 
 function validatePassword(password) {
   let errors = [];
@@ -23,6 +44,17 @@ function validatePassword(password) {
   }
   return errors;
 }
+
+/**
+ * @name validateName
+ * @description 
+ *  check Name is valided?
+ *  
+ * 
+ * @param {String} name 
+ * 
+ * @returns { [Object] } errors
+ */
 function validateName(name) {
   let errors = [];
 
@@ -33,13 +65,16 @@ function validateName(name) {
 }
 
 /**
+ * @name validateRegister
  * 
- * @param {name, email, password} obj
- * @returns {errors, isMatch, obj} 
+ * @param {Object} data = {name , email, password}
+ * @returns {Object} 
+ *  contain errors, isValid and data
  */
+
 function validateRegister(data) {
   data.email = data.email.trim().toLowerCase();
-  data.name = data.name.trim().replace(/\s/, ' ');
+  data.name = data.name.trim().replace(/\s+/, ' ');
   
   const { name , email, password } = data;
 
@@ -56,9 +91,11 @@ function validateRegister(data) {
 }
 
 /**
+ * @name validateLogin
  * 
- * @param {email, password} obj
- * @returns {errors, isMatch, obj} 
+ * @param {Object} data = {email, password}
+ * @returns {Object} 
+ *  contain errors, isValid and data
  */
 function validateLogin(data) {
   data.email = data.email.trim().toLowerCase();

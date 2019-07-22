@@ -6,16 +6,13 @@ const {
 } = require('../validations/user.validation');
 
 async function verifyLogin(req, res, next) {
-  const { errors, isValid, data } = validateLogin(req.body);
-  if( !isValid ) {
-    return res.status(400).send({errors});
-  }
+  
   try {
-    const { user, error } = await User.findByCredentials(data.email, data.password);
-    if(Object.keys(error).length !== 0) {
-      return res.status(error.code).send({message : error.message});
-    }  
-    req.user = user;
+    const { errors, isValid, data } = validateLogin(req.body);
+    if( !isValid ) {
+      return res.status(400).send({errors});
+    }
+    req.body = data;
     next();
   } catch (error) {
     return next(error);
@@ -40,7 +37,7 @@ async function verifyRegister(req, res, next) {
   }
 }
 
-async function verifyAuth(req, res, next) {
+async function isAuth(req, res, next) {
   try {
     let token = req.headers['authorization'].replace('Bearer ', ''); 
     let decoded = JWT.verify(token, process.env.SECRET_KEY_JWT);   
@@ -59,5 +56,5 @@ async function verifyAuth(req, res, next) {
 module.exports = {
   verifyLogin,
   verifyRegister,
-  verifyAuth
+  isAuth
 }

@@ -13,7 +13,7 @@ const {
 const {
   verifyLogin,
   verifyRegister,
-  verifyAuth
+  isAuth
 } = require('../middlewares/user.middleware');
 router.route('/')
   .get(getHomePage);
@@ -22,10 +22,10 @@ router.route('/users/register')
 router.route('/users/login')
   .post(verifyLogin, loggedIn);
 router.route('/users/logout')
-  .post(verifyAuth, loggedOut);
+  .post(isAuth, loggedOut);
 router.route('/users/profile/me')
-  .get(verifyAuth, getProfile)
-  .patch(verifyAuth, updateProfile)
+  .get(isAuth, getProfile)
+  .patch(isAuth, updateProfile)
 // Error Handler User
 router.use(function(err, req, res, next) {
   const { message, code } = err;

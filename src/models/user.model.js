@@ -40,32 +40,26 @@ userSchema.methods.toJSON = function() {
 
 userSchema.methods.generateToken = async function() {
   const user = this;
-  
   let token = await JWT.sign({ _id : user._id.toString() }, process.env.SECRET_KEY_JWT);
   user.tokens = user.tokens.concat({ token });
 
   return token;
 };
 
-userSchema.statics.findByCredentials = async function(email, password) {
-  let error = {};
-  const user = await User.findOne({ email });
-  if(!user) {
-    error = {
-      message : 'User Not Found!',
-      code : 404,
+userSchema.statics.findByCredentials = function(email, password) {
+  return User.findOne({ email }).exec()
+  .then(function (user) {
+    if(!user) {
+      return Promise.reject({ statusCode : 422, message : 'Email Invalid!'});
     }
-    return { user , error};
-  }
-  const isMatchPassword = await bcrypt.compare(password, user.password);
-  if(!isMatchPassword) {
-    error = {
-      message : 'Password incorrect!',
-      code : 400,
+    return Promise.all([user, bcrypt.compare(password, user.password)]);
+  })
+  .then(function ([user, isMatch]) {
+    if(!isMatch) {
+      return Promise.reject({ statusCode : 422, message : 'Password Invalid!'});
     }
-    return { user , error};
-  }
-  return {user, error};
+    return user;
+  });
 }
 
 userSchema.pre('save', async function(next) {

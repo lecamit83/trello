@@ -1,5 +1,5 @@
 const express = require('express');
-const { verifyAuth } = require('../middlewares/user.middleware');
+const { isAuth } = require('../middlewares/user.middleware');
 const { verifyBoard } = require('../middlewares/board.middleware');
 const { adminPermission, memberPermission } = require('../middlewares/member.middleware');
 const {
@@ -13,11 +13,11 @@ const {
 var router = express.Router();
 
 router.route('/boards')
-  .post(verifyAuth, verifyBoard, createBoard)
-  .get(verifyAuth, getBoards);
+  .post(isAuth, verifyBoard, createBoard)
+  .get(isAuth, getBoards);
 router.route('/boards/:boardId')
-  .patch(verifyAuth, adminPermission, updateBoard)
-  .delete(verifyAuth, adminPermission, deleteBoard)
-  .get(verifyAuth, getBoard);
+  .patch(isAuth, adminPermission, updateBoard)
+  .delete(isAuth, adminPermission, deleteBoard)
+  .get(isAuth, getBoard);
 //search
 module.exports = router;
