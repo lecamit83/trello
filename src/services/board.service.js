@@ -100,12 +100,17 @@ function updateBoard(board, name) {
 }
 
 
-
+/**
+ * 
+ * @param { Object Board } board 
+ * @returns none
+ */
 function deleteBoard(board) {
   const id = board._id;
 
   return UserModel.findByBoardId(id)
   .then(function(users) {
+    // remove boardId in user
     users.forEach(async function (user){
       user.boards = user.boards.filter( e => e.boardId.toString() !== id.toString());
       await user.save();
@@ -113,7 +118,9 @@ function deleteBoard(board) {
     return ListModel.findByBoardId(id);
   })
   .then(function(lists) {
+    // remove all list from this board
     lists.forEach(async function(list){
+      // remove all card in lists of Board
       let cards = await CardModel.find({ from : list._id});
       cards.forEach(async function (card) {
         await card.remove();

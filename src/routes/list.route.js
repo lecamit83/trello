@@ -11,8 +11,6 @@ const {
 
 const router = express.Router();
 
-
-
 router.route('/lists')
   .get(isAuth, memberPermission, getLists)
   .post(isAuth, memberPermission, createList)

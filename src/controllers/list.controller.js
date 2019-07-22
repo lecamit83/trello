@@ -1,76 +1,33 @@
-const List = require('../models/list.model');
-const Card = require('../models/card.model');
-const { formatTitle } = require('../utils');
+const ListServices = require('../services/list.service');
 
-async function getLists(req, res, next) {
-  try {
-    let boardId = req.board._id;
-    
-    let lists = await List.find({ from : boardId })
-      .populate({
-        path : 'cards.card',
-        select : 'title members dueTime',
-        populate : {
-          path : 'members.user',
-          select : 'name',
-        }
-      })
-      .exec();
+function getLists(req, res, next) {
+  let boardId = req.board._id;
 
-    res.status(200).send({lists});
-  } catch (error) {
-    next(error);
-  }
+  ListServices.getLists(boardId)
+  .then((lists) => res.status(200).send(lists))
+  .catch(error => next(error));
 }
-async function createList(req, res, next) {
-  try {
-    let titleList = formatTitle(req.body.title);
-    let list = new List({
-      title : titleList,
-      from : req.board._id
-    });
-    let board = req.board;
-    board.lists.push({list : list._id});
-    await list.save();
-    await board.save();
-    res.status(201).send({ message : 'Created New List! '});
-  } catch (error) {
-    next(error);
-  }
+function createList(req, res, next) {
+  let title = req.body.title , board = req.board;
+
+  ListServices.createList(board, title)
+  .then(() => res.status(201).send({ message : 'Create List Success!'}))
+  .catch((error) => res.status(error.statusCode || 500).send({message : error.message}));
 }
-async function updateList(req, res, next) {
-  try {
-    let listId = req.params.listId;
-    let titleList = formatTitle(req.body.title);
-    let list = await List.findById(listId);
-    list.title = titleList;
-    await list.save();
-    res.status(200).send(list);
-  } catch (error) {
-    next(error);
-  }
+function updateList(req, res) {
+  const listId = req.params.listId, title = req.body.title;
+
+  ListServices.updateList(listId, title)
+  .then(list => res.status(200).send(list))
+  .catch(error => res.status(error.statusCode || 500).send({message : error.message}));  
 }
 
-async function deleteList(req, res, next) {
-  try { 
-    let listId = req.params.listId;
-    let list = await List.findOne({ _id : listId });
-    
-    if(!list) { return res.status(404).send('List Not Found!'); }
-    let board = req.board;
-    board.lists = board.lists.filter(e => e.list.toString() !== listId.toString()); 
-    await board.save();
-    
-    let cards = await Card.find({ from : listId });
-    cards.forEach(async function (card) {
-      await card.remove();
-    });
+function deleteList(req, res, next) {
+  let listId = req.params.listId, board = req.board;
 
-    await list.remove();
-    res.status(204).send({ message : 'Delete Success'});
-  } catch (error) {
-    next(error);
-  }
+  ListServices.deleteList(board, listId)
+  .then((list)=>res.status(204).send({message : 'List was deleted'}))
+  .catch((error) => res.status(error.statusCode || 500).send({message : error.message}));
 }
 module.exports = {
   getLists,

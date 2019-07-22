@@ -18,7 +18,7 @@ function verifyBoard(req, res, next) {
 
 async function verifyList (req, res, next) {
   try {
-    const listId = req.body.listId;
+    const listId = req.params.listId || req.body.listId;
     if(!listId) {
       return res.status(400).send({message : 'List ID is Empty!'});
     }
