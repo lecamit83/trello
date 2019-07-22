@@ -23,6 +23,9 @@ listSchema.methods.toJSON = function() {
   delete obj.__v;
   return obj;
 }
+listSchema.statics.findByBoardId = function(boardId) {
+  return List.find({from : boardId});
+}
 
 const List = mongoose.model('List', listSchema);
 module.exports = List;

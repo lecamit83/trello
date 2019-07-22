@@ -40,5 +40,9 @@ cardSchema.methods.toJSON = function () {
   return obj;
 }
 
+cardSchema.statics.findByListId = function(listId) {
+  return Card.find({ from : listId});
+}
+
 const Card = mongoose.model('Card', cardSchema);
 module.exports = Card;

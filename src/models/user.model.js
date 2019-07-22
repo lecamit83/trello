@@ -46,6 +46,10 @@ userSchema.methods.generateToken = async function() {
   return token;
 };
 
+userSchema.statics.findByBoardId = function(boardId) {
+  return User.find({'boards.boardId': boardId });
+}
+
 userSchema.statics.findByCredentials = function(email, password) {
   return User.findOne({ email }).exec()
   .then(function (user) {

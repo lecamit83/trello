@@ -8,9 +8,9 @@ function ownerPermission(req, res, next) {
 async function adminPermission(req, res, next) {
   try {
     let userId = req.user._id;
-    const boardId = req.body.boardId;
+    const boardId = req.params.boardId || req.body.boardId;
     if(!boardId) {
-      return res.status(400).send({message : 'Board ID is Empty!'});
+      return res.status(422).send({message : 'Board ID is Empty!'});
     }
     let board = await Board.findOne({_id : boardId});
     if(!board) {
