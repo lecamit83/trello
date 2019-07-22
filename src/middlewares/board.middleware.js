@@ -1,5 +1,6 @@
 const List = require('../models/list.model');
 const Card = require('../models/card.model');
+const ListServices = require('../services/list.service');
 
 const { validateBoard } = require('../validations/board.validation');
 
@@ -16,23 +17,17 @@ function verifyBoard(req, res, next) {
   }
 }
 
-async function verifyList (req, res, next) {
-  try {
-    const listId = req.params.listId || req.body.listId;
-    if(!listId) {
-      return res.status(400).send({message : 'List ID is Empty!'});
-    }
-    let list = await List.findOne({ _id : listId });
-    if(!list) {
-      return res.status(404).send({ message : 'List Not Found!' });
-    }
-    req.list = list;
+function isListExist (req, res, next) {
+  const listId = req.params.listId || req.body.listId;
+  
+  ListServices.isListExist(listId)
+  .then(function(list) {
+    req.list = list; 
     next();
-  } catch (error) {
-    next(error);
-  }
+  })
+  .catch((error) => res.status(error.statusCode || 500).send({message : error.message}));
 }
-async function verifyCard(req, res, next) {
+async function isCardExist(req, res, next) {
   try {
     let cardId = req.params.cardId ,
         listId = req.body.listId;
@@ -49,6 +44,6 @@ async function verifyCard(req, res, next) {
 
 module.exports = {
   verifyBoard,
-  verifyList,
-  verifyCard
+  isListExist,
+  isCardExist
 }

@@ -1,7 +1,7 @@
 const ListModel = require('../models/list.model');
 const CardModel = require('../models/card.model');
 const { isEmpty, formatTitle } = require('../utils');
-
+const { ObjectId } =require('mongoose').Types;
 
 function getLists(boardId) {
   return ListModel.findByBoardId(boardId)
@@ -63,9 +63,24 @@ function deleteList(board, listId) {
     return list;
   });
 }
+
+function isListExist(listId) {
+  if(!listId || !ObjectId.isValid(listId)) {
+    return Promise.reject({ statusCode : 400, message : 'ListID invalid'});
+  }
+  return ListModel.findById(listId).exec()
+  .then(function(list) {
+    if(!list) {
+      return Promise.reject({ statusCode : 404, message : 'List Not Found!'});
+    }
+    return list;
+  })
+}
 module.exports = {
   getLists,
   createList,
   updateList,
   deleteList,
+  isListExist,
+
 }

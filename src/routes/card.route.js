@@ -4,10 +4,7 @@ const {
   adminPermission, 
   memberPermission
 } = require('../middlewares/member.middleware');
-const {
-  verifyList,
-  verifyCard
-} = require('../middlewares/board.middleware');
+const { isListExist, isCardExist } = require('../middlewares/board.middleware');
 
 const {
   createCard,
@@ -29,40 +26,36 @@ const {
   changeList
 } = require('../controllers/card.controller');
 
-const {
-  addMemberIntoCard,
-  removeMemberInCard
-} = require('../controllers/member.controller');
+const { addMemberIntoCard, removeMemberInCard } = require('../controllers/member.controller');
 const router = express.Router();
 
-
 router.route('/cards')
-  .post(isAuth, memberPermission, verifyList, createCard)
-  .get(isAuth, memberPermission, verifyList, getCards);
+  .post(isAuth, memberPermission, isListExist, createCard)
+  .get(isAuth, memberPermission, isListExist, getCards);
 
 
 router.route('/cards/:cardId')
   .patch(isAuth, memberPermission, updateCard)
   .delete(isAuth, memberPermission, deleteCard)
   .get(isAuth, memberPermission, getCard)
-  .put(isAuth, memberPermission, verifyCard, changeList);
+  .put(isAuth, memberPermission, isCardExist, changeList);
 
 router.route('/cards/:cardId/members')
-  .post(isAuth, memberPermission, verifyCard, addMemberIntoCard);
+  .post(isAuth, memberPermission, isCardExist, addMemberIntoCard);
 
 
 router.route('/cards/:cardId/members/:userId')
-  .delete(isAuth, memberPermission, verifyCard, removeMemberInCard);
+  .delete(isAuth, memberPermission, isCardExist, removeMemberInCard);
 
 router.route('/cards/:cardId/comments')
-  .post(isAuth, memberPermission, verifyCard, addComment);
+  .post(isAuth, memberPermission, isCardExist, addComment);
 
 router.route('/cards/:cardId/comments/:idx')
-  .delete(isAuth, adminPermission, verifyCard, deletedComment)
-  .patch(isAuth, memberPermission, verifyCard, updatedComment);
+  .delete(isAuth, adminPermission, isCardExist, deletedComment)
+  .patch(isAuth, memberPermission, isCardExist, updatedComment);
 
 router.route('/cards/:cardId/tasks')
-  .post(isAuth, memberPermission, verifyCard, createdTask)
+  .post(isAuth, memberPermission, isCardExist, createdTask)
   
 router.route('/cards/:cardId/tasks/:taskId')
   .post(isAuth, memberPermission, createdContentTask)
@@ -72,10 +65,10 @@ router.route('/cards/:cardId/tasks/:taskId/contents/:idx')
   .delete(isAuth, memberPermission, deletedContentTask)
 
 router.route('/cards/:cardId/duetime')
-  .put(isAuth, memberPermission, verifyCard, createdDueTime)
-  .delete(isAuth, memberPermission, verifyCard, deletedDueTime);
+  .put(isAuth, memberPermission, isCardExist, createdDueTime)
+  .delete(isAuth, memberPermission, isCardExist, deletedDueTime);
 router.route('/cards/:cardId/description')
-  .put(isAuth, memberPermission, verifyCard, createdDescription)
-  .delete(isAuth, memberPermission, verifyCard, deletedDescription);
+  .put(isAuth, memberPermission, isCardExist, createdDescription)
+  .delete(isAuth, memberPermission, isCardExist, deletedDescription);
 
 module.exports = router;

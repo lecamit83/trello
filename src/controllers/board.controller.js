@@ -1,9 +1,4 @@
-const Board = require('../models/board.model');
-const List = require('../models/list.model');
-const Card = require('../models/card.model');
-const User = require('../models/user.model');
 const BoardServices = require('../services/board.service');
-const { formatTitle ,isEmpty } = require('../utils');
 
 function createBoard(req, res, next) {
   let {board , user} = req;
@@ -14,9 +9,9 @@ function createBoard(req, res, next) {
 }
 
 function getBoards(req, res, next) {
-  let q = req.query.q || '', id = req.user._id;
+  let queryString = req.query.q || '', userId = req.user._id;
   
-  BoardServices.getBoards(q, id)
+  BoardServices.getBoards(queryString, userId)
   .then(boards => res.status(200).send(boards))
   .catch(error => next(error));
 }
