@@ -139,14 +139,10 @@ function addComment(card, user, comment) {
  * @param {*} comment 
  */
 function updateComment(card, userId, idx, comment) {
-  console.log('a');
-  
   if(isNaN(idx)) {
     return Promise.reject({statusCode : 400, message : 'Index Invalid!'});
   }
-  console.log('a');
   const index = Number.parseInt(idx);
-  console.log('a');
   if (index >= card.comments.length || index < 0) { 
     return Promise.reject({statusCode : 400, message : 'Unfound Message!'}); 
   }
@@ -165,7 +161,7 @@ function deleteComment(board, card, idx, userId) {
   }
   const index = Number.parseInt(idx);
   
-  if (index > card.comments.length || index < 0) { 
+  if (index >= card.comments.length || index < 0) { 
     return Promise.reject({statusCode : 400, message : 'Unfound Message!'}); 
   }
 
