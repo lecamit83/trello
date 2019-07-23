@@ -8,8 +8,12 @@ function addMemberIntoBoard(req, res) {
   .catch((error) => res.status(error.statusCode || 500).send({message : error.message}));
 }
 
-async function addMemberIntoCard(req, res, next) {
-  res.send({message : 'Not Done'});
+function addMemberIntoCard(req, res) {
+  let { board, card } = req, email = req.body.email;
+
+  MemberServices.addMemberIntoCard(board, card, email)
+  .then(() => res.status(200).send({message : 'Add member into Card Success'}))
+  .catch(error => res.status(error.statusCode|| 500).send({message : error.message}));
 }
 function removeMemberInCard(req, res, next) {
   let card = req.card, userId = req.params.userId;
@@ -34,7 +38,7 @@ function updatePermission(req, res, next) {
   
   MemberServices.updateMemberPermission(board, userId, permission)
   .then(()=> res.status(200).send({message: 'User\'s permission was update!'}))
-  .catch(error => res.status(error.statusCode || 500)).send({message : error.message});
+  .catch(error => res.status(error.statusCode).send({message : error.message}));
 }
 
 module.exports = {

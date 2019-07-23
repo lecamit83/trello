@@ -64,17 +64,21 @@ function addMemberIntoCard(board, card, email) {
     return Promise.reject({ statusCode : 422, message : 'Email invalid!'});
   }
 
-  return UserModel.find({ email }).exec()
+  return UserModel.findOne({ email }).exec()
   .then(function(user) {
     if(!user) {
       return Promise.reject({ statusCode : 404, message : 'User Not Found!'});
-    }
+    }  
     if(!isMember(board.members, user._id)) {
       return Promise.reject({ statusCode : 400, message : 'Member Isn\'t Exist In Board!'});
     }
     // add member into card
+    for (const member of card.members) {
+      if(member.user.toString() ===  user._id.toString()) {
+        return Promise.reject({ statusCode : 400, message : 'Member Is Exist In Card'});
+      }
+    }
     card.members.push({user : user._id});
-
     return card.save();
   });
 }
@@ -96,8 +100,7 @@ function updateMemberPermission(board, userId, permission) {
       member.isAdmin = permission;
     }
     return member;
-  });  
-
+  }); 
   return board.save();
 }
 

@@ -1,7 +1,7 @@
 const ListModel = require('../models/list.model');
 const CardModel = require('../models/card.model');
 const { isEmpty, formatTitle } = require('../utils');
-const { ObjectId } =require('mongoose').Types;
+const { ObjectId } = require('mongoose').Types;
 
 function getLists(boardId) {
   return ListModel.findByBoardId(boardId)
@@ -53,14 +53,14 @@ function deleteList(board, listId) {
     }
     // remove listId in board.lists
     board.lists = board.lists.filter(e => e.list.toString() !== listId.toString());
-    return [board.save(), list, CardModel.find({from : listId})];
+    return Promise.all([board.save(), list.save(), CardModel.find({from : listId})]);
   })
   .then(function([board, list, cards]) {
     // remove all cards was contained in list
     cards.forEach(async function (card) {
       await card.remove();
     });
-    return list;
+    return list.remove();
   });
 }
 

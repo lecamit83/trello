@@ -12,17 +12,17 @@ const {
   updateCard,
   deleteCard,
   addComment,
-  deletedComment,
-  updatedComment,
+  deleteComment,
+  updateComment,
   getCard,
-  createdTask,
-  deletedTask,
-  createdContentTask,
-  deletedContentTask,
-  createdDueTime,
-  deletedDueTime,
-  createdDescription,
-  deletedDescription,
+  createTask,
+  deleteTask,
+  createContentTask,
+  deleteContentTask,
+  createDueTime,
+  deleteDueTime,
+  createDescription,
+  deleteDescription,
   changeList
 } = require('../controllers/card.controller');
 
@@ -35,8 +35,8 @@ router.route('/cards')
 
 
 router.route('/cards/:cardId')
-  .patch(isAuth, memberPermission, updateCard)
-  .delete(isAuth, memberPermission, deleteCard)
+  .patch(isAuth, memberPermission, isCardExist, updateCard)
+  .delete(isAuth, memberPermission, isCardExist, deleteCard)
   .get(isAuth, memberPermission, getCard)
   .put(isAuth, memberPermission, isCardExist, changeList);
 
@@ -51,24 +51,24 @@ router.route('/cards/:cardId/comments')
   .post(isAuth, memberPermission, isCardExist, addComment);
 
 router.route('/cards/:cardId/comments/:idx')
-  .delete(isAuth, adminPermission, isCardExist, deletedComment)
-  .patch(isAuth, memberPermission, isCardExist, updatedComment);
+  .delete(isAuth, adminPermission, isCardExist, deleteComment)
+  .patch(isAuth, memberPermission, isCardExist, updateComment);
 
 router.route('/cards/:cardId/tasks')
-  .post(isAuth, memberPermission, isCardExist, createdTask)
+  .post(isAuth, memberPermission, isCardExist, createTask)
   
 router.route('/cards/:cardId/tasks/:taskId')
-  .post(isAuth, memberPermission, createdContentTask)
-  .delete(isAuth, memberPermission, deletedTask)
+  .post(isAuth, memberPermission, isCardExist, createContentTask)
+  .delete(isAuth, memberPermission, isCardExist, deleteTask)
 
 router.route('/cards/:cardId/tasks/:taskId/contents/:idx')
-  .delete(isAuth, memberPermission, deletedContentTask)
+  .delete(isAuth, memberPermission, isCardExist, deleteContentTask)
 
 router.route('/cards/:cardId/duetime')
-  .put(isAuth, memberPermission, isCardExist, createdDueTime)
-  .delete(isAuth, memberPermission, isCardExist, deletedDueTime);
+  .put(isAuth, memberPermission, isCardExist, createDueTime)
+  .delete(isAuth, memberPermission, isCardExist, deleteDueTime);
 router.route('/cards/:cardId/description')
-  .put(isAuth, memberPermission, isCardExist, createdDescription)
-  .delete(isAuth, memberPermission, isCardExist, deletedDescription);
+  .put(isAuth, memberPermission, isCardExist, createDescription)
+  .delete(isAuth, memberPermission, isCardExist, deleteDescription);
 
 module.exports = router;
