@@ -81,8 +81,9 @@ function addComment(req, res, next) {
 }
 
 function updateComment(req, res, next) {
-  const card = req.card, comment = req.body.comment, idx = req.params.idx;
- 
+  const card = req.card, comment = req.body.comment, idx = req.params.idx,
+  userId = req.user._id;
+  
   CardServices.updateComment(card, userId, idx, comment)
   .then(card => res.status(200).send({message : 'Update Comment'}))
   .catch(error => res.status(error.statusCode || 500).send({message : error.message}));  

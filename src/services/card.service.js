@@ -139,6 +139,7 @@ function addComment(card, user, comment) {
  * @param {*} comment 
  */
 function updateComment(card, userId, idx, comment) {
+  
   if(isNaN(idx)) {
     return Promise.reject({statusCode : 400, message : 'Index Invalid!'});
   }
