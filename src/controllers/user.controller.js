@@ -42,11 +42,20 @@ function updateProfile(req, res) {
   });
 }
 
+function uploadAvatar(req, res) {
+  const { path } = req.file, user = req.user;
+  
+  UserService.uploadAvatar(user, path)
+  .then((user) => res.status(200).send({message : 'Upload avatar', user}))
+  .catch(error => res.status(error.statusCode || 500).send({message : error.message}));
+}
+
 module.exports = {
   getHomePage,
   registerUser,
   loggedIn,
   loggedOut,
   getProfile,
-  updateProfile
+  updateProfile,
+  uploadAvatar
 }

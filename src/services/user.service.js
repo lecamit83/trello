@@ -1,5 +1,5 @@
 const UserModel = require('../models/user.model');
-const { formatTitle } = require('../utils');
+const { formatTitle, isEmpty } = require('../utils');
 
 /**
  * @name createUser
@@ -72,9 +72,19 @@ function updateProfile(user, name) {
   return user.save();
 }
 
+function uploadAvatar(user, path) {
+  if(isEmpty(path)) {
+    return Promise.reject({statusCode : 400, message : 'Image is Empty'});
+  }
+  user.avatar = path;
+
+  return user.save();
+}
+
 module.exports = {
   createUser,
   loggedIn,
   loggedOut,
-  updateProfile
+  updateProfile,
+  uploadAvatar
 }

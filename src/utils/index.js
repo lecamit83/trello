@@ -29,8 +29,8 @@ function isOwner(ownerId, myId) {
 }
 function isValidDate(s) {
   let bits = s.split('/');
-  let d = new Date(bits[2] + '/' + bits[0] + '/' + bits[1]);
-  return (d && ((d.getMonth() + 1) == Number(bits[0]) && d.getDate() == Number(bits[1])));
+  let d = new Date(bits[2] + '/' +  bits[0] + '/' + bits[1]);
+  return (d && ((d.getMonth() + 1) === Number.parseInt(bits[0]) && d.getDate() === Number.parseInt(bits[1])));
 }
 function isEmpty(s) {
   return s.trim().length === 0 || !s;

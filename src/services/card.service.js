@@ -182,7 +182,7 @@ function deleteComment(board, card, idx, userId) {
 
 function createDueTime(card, dueTime) {
   if(!isValidDate(dueTime.toString())) {
-    Promise.reject({statusCode : 400, message : 'Invalid Date, format : mm/dd/yyyy'});
+    return Promise.reject({statusCode : 400, message : 'Invalid Date, format : mm/dd/yyyy'});
   }
   card.dueTime = dueTime;
   return card.save();
@@ -195,7 +195,7 @@ function deleteDueTime(card) {
 
 function createDescription(card, description) {
   if(isEmpty(description)) {
-    Promise.reject({ statusCode : 400, message : 'Description is Empty'});
+    return Promise.reject({ statusCode : 400, message : 'Description is Empty'});
   }
   card.description = description;
 

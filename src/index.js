@@ -1,6 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const logger = require('morgan');
 require('dotenv').config();
+
 const db = require('./configs/db');
 const apiRoute = require('./routes/api.route');
 
@@ -9,12 +11,14 @@ const app = express();
 // connect database
 db.localConnect();
 // middleware
+app.use(logger('dev'));
+app.use('/uploads', express.static('uploads'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended : false }));
 
 // router
 app.get('/', function(req, res) {
-  res.status(200).send({message : 'This is HomePage'});
+  res.status(200).send({url : 'http://localhost:5050/uploads/1563856223746-heo.jpeg'});
 });
 
 app.use('/api', apiRoute);

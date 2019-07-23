@@ -14,6 +14,9 @@ const userSchema = new Schema({
   password : {
     type : String,
   },
+  avatar : {
+    type : String,
+  },
   tokens : [{
     token: {
       type : String
