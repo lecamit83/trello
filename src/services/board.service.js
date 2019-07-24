@@ -2,7 +2,8 @@ const BoardModel = require('../models/board.model');
 const ListModel = require('../models/list.model');
 const CardModel = require('../models/card.model');
 const UserModel = require('../models/user.model');
-
+const APIError = require('../errors/APIError');
+const NotFound = require('../errors/NotFoundError');
 const { isEmpty, formatTitle } = require('../utils');
 /**
  * @name createBoard
@@ -15,17 +16,16 @@ const { isEmpty, formatTitle } = require('../utils');
  * @returns board
  * 
  */
-function createBoard(user, board) {
-  return BoardModel.create(board)
-  .then(function(board) {
-    // insert boardId into user and userId into board
-    board.members.push({ userId : user._id , isAdmin : true });
-    user.boards.push({ boardId : board._id});
-    return Promise.all([board.save(), user.save()]);
-  })
-  .then(function([board, user]) {
-    return board;
-  });
+async function createBoard(user, board) {
+  const board = await BoardModel.create(board);
+  // insert boardId into user and userId into board
+  board.members.push({ userId : user._id , isAdmin : true });
+  user.boards.push({ boardId : board._id});
+  
+  await board.save();
+  await user.save();
+
+  return board;
 }
 
 /**
@@ -37,11 +37,7 @@ function createBoard(user, board) {
  * @returns boards
  */
 function getBoards(queryString, userId) {
-  if(isEmpty(queryString)) {
-    return BoardModel.find({'members.userId' : userId}).select('_id title').exec();
-  }
-  let regex = new RegExp(queryString, 'i');
-  return BoardModel.find({ 'members.userId' : userId, title : regex }).select('_id title').exec();
+  return BoardModel.find({'members.userId' : userId}).select('_id title').exec();
 }
 
 /**
@@ -52,8 +48,8 @@ function getBoards(queryString, userId) {
  * @returns one board
  */
 
-function getBoard(userId, boardId) {
-  return BoardModel.findOne({_id : boardId , 'members.userId' : userId})
+async function getBoard(userId, boardId) {
+  const board = await BoardModel.findOne({_id : boardId , 'members.userId' : userId})
   .populate({
     path : 'members.userId',
     select : 'name email'
@@ -70,13 +66,9 @@ function getBoard(userId, boardId) {
       }
     }
   })
-  .exec()
-  .then(function(board) {
-    if(!board) {
-      return Promise.reject({statusCode : 404, message : 'Board Not Found!'});
-    }
-    return board;
-  });
+  .orFail(new NotFound('Board'))
+  .exec();
+  return board;
 }
 
 /**
@@ -87,16 +79,18 @@ function getBoard(userId, boardId) {
  * 
  * @returns board
  */
-function updateBoard(board, name) {
+async function updateBoard(board, name) {
   // check name falsy
   if(!name) {
-    return Promise.reject({statusCode : 400, message : 'Name Invalid'});
+    throw new APIError('Name Invalid', 400);
   }
   // format Title
   name = formatTitle(name);
   //update
   board.title = name;
-  return board.save();
+  await board.save();
+  
+  return board;
 }
 
 
@@ -105,30 +99,27 @@ function updateBoard(board, name) {
  * @param { Object Board } board 
  * @returns none
  */
-function deleteBoard(board) {
+async function deleteBoard(board) {
   const id = board._id;
 
-  return UserModel.findByBoardId(id)
-  .then(function(users) {
-    // remove boardId in user
-    users.forEach(async function (user){
-      user.boards = user.boards.filter( e => e.boardId.toString() !== id.toString());
-      await user.save();
-    });
-    return ListModel.findByBoardId(id);
-  })
-  .then(function(lists) {
-    // remove all list from this board
-    lists.forEach(async function(list){
-      // remove all card in lists of Board
-      let cards = await CardModel.find({ from : list._id});
-      cards.forEach(async function (card) {
-        await card.remove();
-      });
-      await list.remove();
-    });
-    return board.remove();
-  });
+  const users = await UserModel.findByBoardId(id);
+  if(!users) throw new NotFound('User Not Found!');
+
+  for (const user of users) {
+    user.boards = user.boards.filter( e => e.boardId.toString() !== id.toString());
+    await user.save();
+  }
+
+  const lists = await ListModel.findByBoardId(id);
+  for (const list of lists) {
+    const cards = await CardModel.find({ _id : list._id });
+    for (const card of cards) {
+      await card.remove();
+    }
+    await list.remove();
+  }
+  await board.remove();
+  return board;
 }
 module.exports = {
   createBoard,

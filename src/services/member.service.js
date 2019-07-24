@@ -3,84 +3,77 @@ const validator = require('validator');
 const UserModel = require('../models/user.model');
 const CardModel = require('../models/card.model');
 const { isMember } = require('../utils');
+const APIError = require('../errors/APIError');
+const NotFound = require('../errors/NotFoundError');
 
-function addMemberIntoBoard(board, email) {
-  email = email.trim();
-  
-  if(!validator.isEmail(email)) {
-    return Promise.reject({ statusCode : 422, message : 'Email invalid!'});
+async function addMemberIntoBoard(board, email) {
+
+  if(!email || !validator.isEmail(email)) {
+    throw new APIError('Email Invalid', 422);
   }
 
-  return UserModel.findOne({ email }).exec()
-  .then(function(user) {
-    if(!user) {
-      return Promise.reject({ statusCode : 404, message : 'User Not Found!'});
-    }
-    if(isMember(board.members, user._id)) {
-      return Promise.reject({ statusCode : 400, message : 'User Is Exist In Board!'});
-    }
-    // insert userId in board and boardId in user
-    board.members.push({ userId : user._id });  
-    user.boards.push({ boardId : board._id });
-
-    return Promise.all([board.save(), user.save()]);
-  })
-  .then(function([board, user]) {
-    return board;
-  });
+  let user = await UserModel.findOne({ email }).orFail(new NotFound('User Not Found!')).exec();
+  
+  if(isMember(board.members, user._id)) {
+    throw new APIError('User Is Exist In Board!');
+  }
+  // insert userId in board and boardId in user
+  board.members.push({ userId : user._id });  
+  user.boards.push({ boardId : board._id });
+  await board.save();
+  await user.save();
+  return board;
 }
 
-function removeMemberInBoard(board, userId) {
+async function removeMemberInBoard(board, userId) {
   if(!isMember(board.members, userId)) {
-    return Promise.reject({ statusCode : 404, message : 'User Not Found!'});
+    throw new APIError('User Not Found!');
   }
   // remove member in board
   board.members = board.members.filter(function(member) {
     return member.userId.toString() !== userId.toString();
   });
 
-  return Promise.all([UserModel.findById(userId), CardModel.find({'members.user' : userId})])
-  .then(function([user, cards]) {
-    // remove boardId in this user
-    user.boards = user.boards.filter(function(board) {
-      return board.boardId.toString() !== board._id.toString();
-    });
-    // remove all userId of user in card
-    cards.forEach(async function(card){
-      card.members = card.members.filter(function(e) {
-        return e.user.toString() !== userId.toString();
-      });
-      await card.save();
-    });
-    
-    return Promise.all([user.save(), board.save()]);
-  });
-}
+  const user = await UserModel.findById(userId).orFail(new NotFound('User Not Found'));
+  const cards = await CardModel.find({'members.user' : userId});
 
-function addMemberIntoCard(board, card, email) {
-  email = email.trim();
-  
-  if(!validator.isEmail(email)) {
-    return Promise.reject({ statusCode : 422, message : 'Email invalid!'});
+  // remove boardId in this user
+  user.boards = user.boards.filter(function(board) {
+    return board.boardId.toString() !== board._id.toString();
+  });
+  // remove member in cards
+  for (const card of cards) {
+    card.members = card.members.filter(function(e) {
+      return e.user.toString() !== userId.toString();
+    });
+    await card.save();
   }
 
-  return UserModel.findOne({ email }).exec()
-  .then(function(user) {
-    if(!user) {
-      return Promise.reject({ statusCode : 404, message : 'User Not Found!'});
-    }  
-    if(!isMember(board.members, user._id)) {
-      return Promise.reject({ statusCode : 400, message : 'Member Isn\'t Exist In Board!'});
+  await user.save();
+  await board.save();
+
+  return board;
+}
+
+async function addMemberIntoCard(board, card, email) {
+
+  if(!email || !validator.isEmail(email)) {
+    throw new APIError('Email invalid!', 422);
+  }
+
+  const user = await UserModel.findOne({email}).orFail(new NotFound('User Not Found!')).exec();
+  if(!isMember(board.members, user._id)) {
+    throw new APIError('Member Isn\'t Exist In Board!');
+  }
+  // add member into card
+  for (const member of card.members) {
+    if(member.user.toString() ===  user._id.toString()) {
+      throw new APIError('Member Is Exist In Card');
     }
-    // add member into card
-    for (const member of card.members) {
-      if(member.user.toString() ===  user._id.toString()) {
-        return Promise.reject({ statusCode : 400, message : 'Member Is Exist In Card'});
-      }
-    }
-    card.members.push({user : user._id});
-    return card.save();
-  });
+  }
+  card.members.push({user : user._id});
+  await card.save();
+  return card;
 }
 
 function removeMemberInCard(card, userId) {
@@ -90,9 +83,9 @@ function removeMemberInCard(card, userId) {
   return card.save();
 }
 
-function updateMemberPermission(board, userId, permission) {
+async function updateMemberPermission(board, userId, permission) {
   if(!isMember(board.members, userId)) {
-    return Promise.reject({ statusCode : 404, message : 'User isn\'t in board'});
+    throw new NotFound('User isn\'t in board');
   }
   // find and update permission member
   board.members = board.members.filter(function(member) {

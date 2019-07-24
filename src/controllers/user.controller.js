@@ -4,50 +4,58 @@ function getHomePage(req, res) {
   res.status(200).send({message : 'This Home Page'});
 }
 
-function registerUser(req, res) {
-  const { name, email, password } = req.body;
-  UserService.createUser(name, email, password)
-  .then(result => res.status(201).json(result))
-  .catch(error => res.status(statusCode).send({ message : error.message }));
+async function registerUser(req, res) {
+  try {
+    const { name, email, password } = req.body;
+    const result = await UserService.createUser(name, email, password);
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(error.statusCode || 500).send({ message : error.message })
+  }  
 }
 
-function loggedIn(req, res) {
-  const { email, password } = req.body;
-  UserService.loggedIn(email, password)
-  .then(result => res.status(200).json(result))
-  .catch(error => res.status(error.statusCode).send({message : error.message}));
+async function loggedIn(req, res) {
+  try {
+    const { email, password } = req.body;
+    const result = await UserService.loggedIn(email, password);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(error.statusCode || 500).send({message : error.message})
+  }
 }
 
-function loggedOut(req, res, next) {
-  let user = req.user;
-  UserService.loggedOut(user)
-  .then(user => res.status(200).send({message : 'Logged Out Success!'}))
-  .catch(error => next(error));
+async function loggedOut(req, res, next) {
+  try {
+    let user = req.user;
+    const result = await UserService.loggedOut(user);
+    res.status(200).send({message : 'Logged Out Success!'});
+  } catch (error) {
+    res.status(error.statusCode || 500).send({message : error.message})
+  }
 }
 
 function getProfile(req, res) {
   res.status(200).send(req.user);
 }
 
-function updateProfile(req, res) {  
-  let name = req.body.name;
-  let user = req.user;
-
-  UserService.updateProfile(user, name)
-  .then(function(user) {
-    return res.status(200).send(user);
-  })
-  .catch(function(error) {
-    return res.status(error.statusCode).send({message : error.message});
-  });
+async function updateProfile(req, res) {  
+  try {
+    const name = req.body.name, user = req.user;
+    const result = await UserService.updateProfile(user, name);
+    res.status(200).send(user);
+  } catch (error) {
+    res.status(error.statusCode || 500).send({message : error.message})
+  }
 }
 
-function uploadAvatar(req, res) {
-  const { path } = req.file, user = req.user;
-  
-  UserService.uploadAvatar(user, path)
-  .then((user) => res.status(200).send({message : 'Upload avatar', user}))
-  .catch(error => res.status(error.statusCode || 500).send({message : error.message}));
+async function uploadAvatar(req, res) {
+  try {
+    const { path } = req.file, user = req.user;
+    const user = await UserService.uploadAvatar(user, path);
+    res.status(200).send({message : 'Upload avatar', user});
+  } catch (error) {
+    res.status(error.statusCode || 500).send({message : error.message})
+  }
 }
 
 module.exports = {

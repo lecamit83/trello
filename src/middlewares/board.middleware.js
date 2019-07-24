@@ -16,10 +16,10 @@ function verifyBoard(req, res, next) {
   }
 }
 
-function isListExist(req, res, next) {
+async function isListExist(req, res, next) {
   const listId = req.params.listId || req.body.listId;
 
-  ListServices.isListExist(listId)
+   ListServices.isListExist(listId)
     .then(function (list) {
       req.list = list;
       next();

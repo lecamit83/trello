@@ -1,140 +1,170 @@
 const CardServices = require('../services/card.service');
 
-function createCard(req, res) {
-  let list = req.list, title = req.body.title;
-
-  CardServices.createCard(list, title)
-    .then(function ([card, list]) {
-      return res.status(201).send({ message: 'Create Card Success!' });
-    })
-    .catch(error => res.status(error.statusCode || 500).send({ message: error.message }));
+async function createCard(req, res) {
+  try {
+    const list = req.list, title = req.body.title;
+    await CardServices.createCard(list, title);
+    res.status(201).send({ message: 'Create Card Success!' });
+  } catch (error) {
+    res.status(error.statusCode || 500).send({ message: error.message });
+  }
 }
 
 
-function getCards(req, res) {
-  const listId = req.list._id;
-
-  CardServices.getCards(listId)
-    .then(cards => res.status(200).send(cards))
-    .catch(error => res.status(500).send({ message: error.message }));
+async function getCards(req, res) {
+  try {
+    const listId = req.list._id;
+    const cards = await CardServices.getCards(listId);
+    res.status(200).send(cards);
+  } catch (error) {
+    res.status(error.statusCode || 500).send({ message: error.message })
+  }
 }
 
-function getCard(req, res) {
-  let cardId = req.params.cardId, listId = req.body.listId;
-
-  CardServices.getCard(listId, cardId)
-    .then(card => res.status(200).send(card))
-    .catch(error => res.status(error.statusCode || 500).send({ message: error.message }));
+async function getCard(req, res) {
+  try {
+    const cardId = req.params.cardId, listId = req.body.listId;
+    const card = await CardServices.getCard(listId, cardId);
+    res.status(200).send(card)
+  } catch (error) {
+    res.status(error.statusCode || 500).send({ message: error.message })
+  }
 }
 
-function updateCard(req, res) {
-  let title = req.body.title, card = req.card;
-
-  CardServices.updateCard(card, title)
-    .then(card => res.status(200).send(card))
-    .catch(error => res.status(error.statusCode).send({ message: error.message }));
+async function updateCard(req, res) {
+  try {
+    const title = req.body.title, card = req.card;
+    const card = await CardServices.updateCard(card, title);
+    res.status(200).send(card)
+  } catch (error) {
+    res.status(error.statusCode).send({ message: error.message })
+  }
+}
+async function deleteCard(req, res) {
+  try {
+    const card = req.card; 
+    await CardServices.deleteCard(card);
+    res.status(204).send({ message: 'Delete Card Success!' });
+  } catch (error) {
+    res.status(error.statusCode || 500).send({ message: error.message }) 
+  }
+}
+async function createTask(req, res) {
+  try {
+    const card = req.card, task = req.body.task;
+    const nCard = await CardServices.createTask(card, task);
+    res.status(201).send({ message: 'Created New Main Task Success' , nCard});
+  } catch (error) {
+    res.status(error.statusCode || 500).send({message : error.message});
+  }
+}
+async function deleteTask(req, res) {
+  try {
+    const card = req.card, taskId = req.params.taskId;
+    await CardServices.deleteTask(card, taskId);  
+    res.status(204).send({message : 'Delete Task Success'});
+  } catch (error) {
+    res.status(error.statusCode || 500).send({message : error.message});
+  }
+}
+async function createContentTask(req, res) {
+  try {
+    const card = req.card, taskId = req.params.taskId, content = req.body.content;
+    const nCard = await CardServices.createContentTask(card, taskId, content);
+    res.status(201).send({message : 'Create Content Task Success', card : nCard});
+  } catch (error) {
+    res.status(error.statusCode || 500).send({message : error.message});
+  }
+}
+async function deleteContentTask(req, res, next) {
+  try {
+    const card = req.card, taskId = req.params.taskId, idx = req.params.idx;
+    await CardServices.deleteContentTask(card, taskId, idx);
+    res.status(204).send({ message : 'Delete Content Task'});
+  } catch (error) {
+    res.status(error.statusCode || 500).send({message : error.message});
+  }
 }
 
-function deleteCard(req, res) {
-  let card = req.card;
-
-  CardServices.deleteCard(card)
-    .then(([list, card]) => res.status(204).send({ message: 'Delete Card Success!' }))
-    .catch(error => res.status(error.statusCode || 500).send({ message: error.message }));
+async function addComment(req, res, next) { 
+  try {
+    const card = req.card, userId = req.user._id, comment = req.body.comment;
+    const nCard = await CardServices.addComment(card, userId, comment);
+    res.status(201).send({ message : 'Add Comment Success!', card : nCard});
+  } catch (error) {
+    res.status(error.statusCode || 500).send({message : error.message});
+  }
 }
 
-function createTask(req, res) {
-  let card = req.card, task = req.body.task;
-
-  CardServices.createTask(card, task)
-  .then(card => res.status(201).send({ message: 'Created New Main Task Success' , card}))
-  .catch(error => res.status(error.statusCode || 500).send({message : error.message}));
-}
-function deleteTask(req, res, next) {
-  let card = req.card, taskId = req.params.taskId;
-  
-  CardServices.deleteTask(card, taskId)
-  .then(card => res.status(204).send({message : 'Delete Task Success'}))
-  .catch(error => next(error));
-}
-function createContentTask(req, res, next) {
-  let card = req.card, taskId = req.params.taskId, content = req.body.content;
-  
-  CardServices.createContentTask(card, taskId, content)
-  .then(card => res.status(201).send({message : 'Create Content Task Success'}))
-  .catch(error => next(error));
-}
-function deleteContentTask(req, res, next) {
-  let card = req.card, taskId = req.params.taskId, idx = req.params.idx;
-  
-  CardServices.deleteContentTask(card, taskId, idx)
-  .then(card => res.status(204).send({ message : 'Delete Content Task'}))
-  .catch(error => next(error));
+async function updateComment(req, res, next) {
+  try {
+    const card = req.card, comment = req.body.comment, idx = req.params.idx,
+          userId = req.user._id;
+    const nCard = await CardServices.updateComment(card, userId, idx, comment);
+    res.status(200).send({message : 'Update Comment', card : nCard});
+  } catch (error) {
+    res.status(error.statusCode || 500).send({message : error.message});
+  }
 }
 
-function addComment(req, res, next) {
-  let card = req.card, userId = req.user._id, comment = req.body.comment;
-  
-  CardServices.addComment(card, userId, comment)
-  .then(card => res.status(201).send({ message : 'Add Comment Success!'}))
-  .catch(error => next(error));
+async function deleteComment(req, res, next) {
+  try {
+    const { board, card } = req, idx = req.params.idx, userId = req.user._id;
+    const nCard = await CardServices.deleteComment(board, card, idx, userId);
+    res.status(204).send({message : 'Delete Comment', card : nCard});
+  } catch (error) {
+    res.status(error.statusCode || 500).send({message : error.message})
+  }
 }
 
-function updateComment(req, res, next) {
-  const card = req.card, comment = req.body.comment, idx = req.params.idx,
-  userId = req.user._id;
-  
-  CardServices.updateComment(card, userId, idx, comment)
-  .then(card => res.status(200).send({message : 'Update Comment'}))
-  .catch(error => res.status(error.statusCode || 500).send({message : error.message}));  
-}
-
-function deleteComment(req, res, next) {
-  const { board, card } = req, idx = req.params.idx, userId = req.user._id;
- 
-  CardServices.deleteComment(board, card, idx, userId)
-  .then(card => res.status(204).send({message : 'Delete Comment'}))
-  .catch(error => res.status(error.statusCode || 500).send({message : error.message}));
-}
-
-function createDueTime(req, res, next) {
-  let dueTime = req.body.dueTime, card = req.card;
-
-  CardServices.createDueTime(card, dueTime)
-  .then(card => res.status(200).send({message : 'Update DueTime Success!'}))
-  .catch(error => res.status(error.statusCode || 500).send({message : error.message}));
+async function createDueTime(req, res, next) {
+  try {
+    const dueTime = req.body.dueTime, card = req.card;
+    const nCard = await CardServices.createDueTime(card, dueTime);
+    res.status(200).send({message : 'Update DueTime Success!', card : nCard});
+  } catch (error) {
+    res.status(error.statusCode || 500).send({message : error.message});
+  }
 }
 
 async function deleteDueTime(req, res, next) {
-  let card = req.card;
-
-  CardServices.deleteDueTime(card)
-  .then(card => res.status(204).send({ message: 'Deleted DueTime' }))
-  .catch(error => next(error));
+  try {
+    const card = req.card;  
+    const nCard = await CardServices.deleteDueTime(card);
+    res.status(204).send({ message: 'Deleted DueTime' , card : nCard});
+  } catch (error) {
+    res.status(error.statusCode || 500).send({message : error.message});
+  }
 }
 
-function createDescription(req, res, next) {
-  let description = req.body.description, card = req.card;
-  
-  CardServices.createDescription(card, description)
-  .then(card => res.status(200).send({ message : 'Update Description' , card}))
-  .catch(error => res.status(error.statusCode || 500).send({message : error.message}));
+async function createDescription(req, res, next) {
+  try {
+    const description = req.body.description, card = req.card;
+    const nCard = await CardServices.createDescription(card, description);
+    res.status(200).send({ message : 'Update Description' , card : nCard});
+  } catch (error) {
+    res.status(error.statusCode || 500).send({message : error.message});
+  }
 }
 
 async function deleteDescription(req, res, next) {
-  let card = req.card;
-
-  CardServices.deleteDescription(card)
-  .then(card => res.status(204).send({ message: 'Deleted Description' }))
-  .catch(error => next(error));
+  try {
+    const card = req.card;
+    const nCard = await CardServices.deleteDescription(card);
+    res.status(204).send({ message: 'Deleted Description', card : nCard });
+  } catch (error) {
+    res.status(error.statusCode || 500).send({message : error.message});
+  }
 }
 
-function changeList(req, res, next) {
-  let card = req.card, listId = req.body.listId;
-  
-  CardServices.moveCard(card, listId)
-  .then(() => res.status(200).send({message : 'Change List Success!'}))
-  .catch((error) => res.status(error.statusCode || 500).send({message : error.message}));
+async function changeList(req, res, next) {
+  try {
+    const card = req.card, listId = req.body.listId;
+    const nCard = await CardServices.moveCard(card, listId);
+    res.status(200).send({message : 'Change List Success!', card : nCard});
+  } catch (error) {
+    res.status(error.statusCode || 500).send({message : error.message}) 
+  }
 }
 
 module.exports = {

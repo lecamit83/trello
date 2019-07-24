@@ -1,6 +1,7 @@
 const UserModel = require('../models/user.model');
 const { formatTitle, isEmpty } = require('../utils');
-
+const NotFound = require('../errors/NotFoundError');
+const APIError = require('../errors/APIError');
 /**
  * @name createUser
  * 
@@ -12,11 +13,11 @@ const { formatTitle, isEmpty } = require('../utils');
  * 
  */
 
-function createUser (name ,email, password) {
-  return UserModel.create({name, email, password})
-  .then(function (user) {
-    return loggedIn(email, password);
-  });
+async function createUser (name ,email, password) {
+  const user = await UserModel.create({name, email, password});
+  const token = await user.generateToken();
+  await user.save();
+  return {user, token};
 }
 
 /**
@@ -29,17 +30,12 @@ function createUser (name ,email, password) {
  * @returns { Promise [Object] } user = {user , token}
  * 
  */
-function loggedIn(email, password) {
-  return UserModel.findByCredentials(email, password)
-  .then(function(user) {
-    return Promise.all([user, user.generateToken()]);
-  })
-  .then(function ([user, token]) {
-    return Promise.all([user.save(), token]);
-  })
-  .then(function([user, token]){
-    return { user, token };
-  });
+async function loggedIn(email, password) {
+  const user = await UserModel.findByCredentials(email, password);
+  const token = await user.generateToken();
+  await user.save();
+  
+  return {user, token};
 }
 /**
  * @name loggedOut
@@ -62,23 +58,26 @@ function loggedOut(user) {
  * @returns { Promise [Object] } user 
  * 
  */
-function updateProfile(user, name) {
+async function updateProfile(user, name) {
   // check name falsy
   if(!name) {
-    return Promise.reject({statusCode : 400, message : 'Name Invalid'});
+    throw new APIError('Name Invalid', 400);
   }
   // update name of User
   user.name = formatTitle(name);
-  return user.save();
+  await user.save();
+
+  return user;
 }
 
-function uploadAvatar(user, path) {
+async function uploadAvatar(user, path) {
   if(isEmpty(path)) {
-    return Promise.reject({statusCode : 400, message : 'Image is Empty'});
+    throw new APIError('Image Invalid', 400);
   }
   user.avatar = path;
+  await user.save();
 
-  return user.save();
+  return user;
 }
 
 module.exports = {

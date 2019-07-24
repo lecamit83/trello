@@ -2,34 +2,32 @@ const CardModel = require('../models/card.model');
 const ListModel = require('../models/list.model');
 const { ObjectId } = require('mongoose').Types;
 const { isEmpty, formatTitle, isAdmin, isOwner, isValidDate } = require('../utils');
+const NotFound = require('../errors/NotFoundError');
+const APIError = require('../errors/APIError');
 
-function isCardExist(listId, cardId) {
+async function isCardExist(listId, cardId) {
   if (!listId || !ObjectId.isValid(listId)) {
-    return Promise.reject({ statusCode: 400, message: 'ListID invalid' });
+    throw new APIError('ListID invalid');
   }
   if (!cardId || !ObjectId.isValid(cardId)) {
-    return Promise.reject({ statusCode: 400, message: 'CardID invalid' });
+    throw new APIError('CardID invalid');
   }
-  return CardModel.findOne({ _id: cardId, from: listId }).exec()
-    .then(function (card) {
-      if (!card) {
-        return Promise.reject({ statusCode : 404, message : 'Card Not Found!'});
-      }
-      return card;
-    });
+  const card = await CardModel.findOne({ _id: cardId, from: listId }).orFail(new NotFound('Card Not Found!')).exec();
+  return card;
 }
 
-function createCard(list, title) {
+async function createCard(list, title) {
   title = formatTitle(title);
   if(isEmpty(title)) {
-    return Promise.reject({ statusCode : 400, message : 'Title is Empty!'});
+    throw new APIError('Title is Empty!');
   }
+  const card = await CardModel.create({title , from : list._id});
+  list.cards.push({ card : card._id});
 
-  return CardModel.create({title , from : list._id})
-  .then(function (card) {
-    list.cards.push({ card : card._id});
-    return Promise.all([card.save(), list.save()]);
-  });
+  await card.save();
+  await list.save();
+
+  return card;
 }
 
 function getCards(listId) {
@@ -39,8 +37,8 @@ function getCards(listId) {
   }).exec();
 }
 
-function getCard(listId, cardId) {
-  return CardModel.findOne({ _id : cardId, from : listId})
+async function getCard(listId, cardId) {
+  const card = await CardModel.findOne({ _id : cardId, from : listId})
   .populate({
     path : 'members.user',
     select : 'name',
@@ -48,46 +46,36 @@ function getCard(listId, cardId) {
   .populate({
     path : 'comments.user',
     select : 'name'
-  }).exec()
-  .then(function(card) {
-    if(!card) {
-      return Promise.reject({ statusCode : 404, message : 'Card Not Found!'});
-    }
-    return card;
-  });
+  }).orFail(new NotFound('Card Not Found!')).exec()
+  return card;
 }
 
-function updateCard(card, title) {
+async function updateCard(card, title) {
   title = formatTitle(title);
   if(isEmpty(title) || !title) {
-    return Promise.reject({ statusCode : 422, message : 'Title is empty!'});
+    throw new APIError('Title is empty!', 422);
   }
 
   card.title = title;
-  return card.save();
+  await card.save();
+  return card;
 }
 
-function deleteCard(card) {
-  return ListModel.findOne({ _id : card.from }).exec()
-  .then(function(list) {
-    if(!list) {
-      return Promise.reject({ statusCode : 404, message : 'List Not Found!'});
-    }
-    list.cards = list.cards.filter(e => e.card.toString() !== card._id.toString());
-
-    return Promise.all([list.save(), card.remove()]);
-  });
-}
-
-function createTask(card, task) {
-  task = task.trim();
-
-  if(isEmpty(task)) {
-    return Promise.reject({ statusCode : 422, message : 'Task is Empty!'});
-  }
-
-  card.tasks.push({ title : task, contents : []});
+async function deleteCard(card) {
+  const list = await ListModel.findOne({ _id : card.from }).orFail(new NotFound('List Not Found!')).exec();
+  console.log(list);
   
+  list.cards = list.cards.filter(e => e.card.toString() !== card._id.toString());
+  await list.save();
+  await card.remove();
+  return card;
+}
+
+async function createTask(card, task) {
+  if(isEmpty(task)) {
+    throw new APIError('Task is Empty!', 422);
+  }
+  card.tasks.push({ title : task, contents : []});
   return card.save();
 }
 
@@ -99,25 +87,25 @@ function deleteTask(card, taskId) {
   return card.save();
 }
 
-function createContentTask(card, taskId, content) {
+async function createContentTask(card, taskId, content) {
   if(isEmpty(content)) {
-    return Promise.reject({ statusCode : 400, message : 'Content Task is Empty!'});
+    throw new APIError('Content Task is Empty!', 422);
   }
   let task = card.tasks.find(e => e._id.toString() === taskId.toString());
 
   if (!task) {
-    return Promise.reject({ statusCode : 404, message : 'Task Not Found!'});
+    throw new NotFound('Task Not Found!');
   }
   task.contents.push(content);
 
   return card.save();
 }
 
-function deleteContentTask(card, taskId, idx) {
+async function deleteContentTask(card, taskId, idx) {
   let task = card.tasks.find(e => e._id.toString() === taskId.toString());
 
   if (!task) {
-    return Promise.reject({statusCode : 404 , message : 'Task Not Found!'});
+    throw new NotFound('Task Not Found!');
   } 
 
   task.contents = task.contents.filter(function (content, index) {
@@ -138,36 +126,35 @@ function addComment(card, user, comment) {
  * @param {*} idx 
  * @param {*} comment 
  */
-function updateComment(card, userId, idx, comment) {
-  
+async function updateComment(card, userId, idx, comment) {
   if(isNaN(idx)) {
-    return Promise.reject({statusCode : 400, message : 'Index Invalid!'});
+    throw new APIError('Index Invalid!');
   }
   const index = Number.parseInt(idx);
   if (index >= card.comments.length || index < 0) { 
-    return Promise.reject({statusCode : 400, message : 'Unfound Message!'}); 
+    throw new APIError('Unfound Message!'); 
   }
   // isOwner Comment
   if (!isOwner(card.comments[index].user, userId)) {
-    return Promise.reject({ statusCode : 403, message : 'Forbidden!'});
+    throw new APIError('Forbidden!', 403);
   }
   card.comments[index].comment = comment;
 
   return card.save();
 }
 
-function deleteComment(board, card, idx, userId) {
+async function deleteComment(board, card, idx, userId) {
   if(isNaN(idx)) {
-    return Promise.reject({statusCode : 400, message : 'Index Invalid!'});
+    throw new APIError('Index Invalid!');
   }
   const index = Number.parseInt(idx);
   
   if (index >= card.comments.length || index < 0) { 
-    return Promise.reject({statusCode : 400, message : 'Unfound Message!'}); 
+    throw new APIError('Unfound Message!'); 
   }
 
   if (!isAdmin(board.members, userId) || !isOwner(card.comments[index].user, userId)) {
-    return Promise.reject({ statusCode : 403, message : 'Forbidden!'});
+    throw new APIError('Forbidden!', 403);
   }
 
   card.comments = card.comments.filter(function (message, index) {
@@ -177,9 +164,9 @@ function deleteComment(board, card, idx, userId) {
   return card.save();
 }
 
-function createDueTime(card, dueTime) {
+async function createDueTime(card, dueTime) {
   if(!isValidDate(dueTime.toString())) {
-    return Promise.reject({statusCode : 400, message : 'Invalid Date, format : mm/dd/yyyy'});
+    throw new APIError('Invalid Date, format : mm/dd/yyyy');
   }
   card.dueTime = dueTime;
   return card.save();
@@ -190,9 +177,9 @@ function deleteDueTime(card) {
   return card.save();  
 }
 
-function createDescription(card, description) {
+async function createDescription(card, description) {
   if(isEmpty(description)) {
-    return Promise.reject({ statusCode : 400, message : 'Description is Empty'});
+    throw new APIError('Description is Empty');
   }
   card.description = description;
 
@@ -211,21 +198,18 @@ function deleteDescription(card) {
  * 
  * @description move card from source list to dest list
  */
-function moveCard(card, listId) {
-  return Promise.all([ListModel.findOne({ _id : listId}), ListModel.findOne({_id : card.from})])
-  .then(function([destList, sourceList]) {
-    if(!destList) {
-      return Promise.reject({statusCode : 404, message : 'List Not Found!'});
-    }
-    if(!sourceList) {
-      return Promise.reject({statusCode : 400, message : 'List Was Removed!'});
-    }
-    sourceList.cards = sourceList.cards.filter(function (e) {
-      return e.card.toString() !== card._id.toString();
-    });
-    destList.cards.push({ card: card._id });
-    return Promise.all([card.save(), destList.save(), sourceList.save()]);
+async function moveCard(card, listId) {
+  const sourceList = await ListModel.findOne({_id : card.from}).orFail(new NotFound('Source List Not Found!')).exec();
+  const destList = await ListModel.findOne({ _id : listId}).orFail(new NotFound('DestList Not Found!')).exec();
+
+  sourceList.cards = sourceList.cards.filter(function (e) {
+    return e.card.toString() !== card._id.toString();
   });
+  destList.cards.push({ card: card._id });
+
+  await destList.save();
+  await sourceList.save();
+  return card;
 }
 
 module.exports = {
