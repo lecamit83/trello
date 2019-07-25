@@ -3,7 +3,7 @@ const BoardServices = require('../services/board.service');
 async function createBoard(req, res, next) {
   try {
     const {board , user} = req;  
-    const result = await BoardServices.createBoard(user, board);
+    const result = await BoardServices.createBoard(user, board);  
     res.status(201).send({message : 'Create Board Success!', result})
   } catch (error) {
     next(error)
@@ -12,11 +12,11 @@ async function createBoard(req, res, next) {
 
 async function getBoards(req, res, next) {
   try {
-    const queryString = req.query.q || '', userId = req.user._id;
-    const boards = await BoardServices.getBoards(queryString, userId);
-    res.status(200).send(boards)
+    const queryString = req.query.q, userId = req.user._id, page = req.query.page, page_size = req.query.page_size, sort = req.query.sort;
+    const boards = await BoardServices.getBoards(queryString, userId, page, page_size, sort);
+    res.status(200).send(boards);
   } catch (error) {
-    next(error);
+    res.status(error.statusCode || 500).send({message : error.message});
   }
 }
 

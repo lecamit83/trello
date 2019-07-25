@@ -16,6 +16,7 @@ const boardSchema = new Schema({
     }
   }],
   lists : [{ list : {type : Schema.Types.ObjectId, ref : 'List'}}],
+  description : String
 }, {
   timestamps : true,
 });
@@ -28,6 +29,9 @@ boardSchema.methods.toJSON = function () {
   delete obj.updatedAt;
   return obj;
 }
+
+boardSchema.index({description : 'text'});
+boardSchema.index({ title : 1 });
 
 const Board = mongoose.model('Board', boardSchema);
 module.exports = Board;
