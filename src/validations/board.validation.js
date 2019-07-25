@@ -9,7 +9,13 @@ function validateTitle(title) {
   }
   return errors;
 }
-
+function validateDescription(title) {
+  let errors = [];
+  if(validator.isEmpty(title)) {
+    errors.push('Description is Empty!');
+  }
+  return errors;
+}
 
 function validateBoard(obj) {
   let board = {
@@ -21,7 +27,7 @@ function validateBoard(obj) {
   board.description = obj.description;
   let errors = [];
   errors.push(...validateTitle(board.title));
-  
+  errors.push(...validateDescription(board.description))
   let isValid = errors.length === 0;
   return {
     errors,

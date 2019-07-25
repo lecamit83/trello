@@ -1,0 +1,264 @@
+{
+    "swagger":"2.0",
+    "info": {
+        "title":"Trello Fake API",
+        "version":"1.0"
+    },
+    "host": "localhost:5050",
+    "basePath": "/api",
+    "tags": [
+        {
+            "name": "Users",
+            "description": "API for users in the system"
+        },
+        {
+            "name": "Boards",
+            "description": "API for users in the system"
+        }
+    ],
+    "schemes": ["http"],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/users/register" : {
+            "post": {
+                "tags": [
+                  "Users"
+                ],
+                "description": "Create new user in system",
+                "parameters": [
+                  {
+                    "name": "user",
+                    "in": "body",
+                    "description": "User that we want to create",
+                    "schema": {
+                        "example" : {
+                            "name" : "string",
+                            "email" : "string",
+                            "password": "string"
+                        }
+                    }
+                  }
+                ],
+                "produces": [
+                  "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Create Success",
+                        "examples": {
+                            "result" : {
+                                "user" : {
+                                    "name" : "string",
+                                    "email" : "string",
+                                    "boards" : "array"
+                                },
+                                "token" : "string"
+                            }
+                        }
+                    },
+                    "400" : {
+                        "description": "Email Invalid or Email was exist"
+                    }
+                }
+            }
+        },
+        "/users/login" : {
+            "post": {
+                "tags": [
+                  "Users"
+                ],
+                "description": "Login user into system",
+                "parameters": [
+                  {
+                    "name": "user",
+                    "in": "body",
+                    "description": "Email & Password of User that we want to login",
+                    "schema": {
+                      "example" : {
+                          "email" : "string",
+                          "password" : "string"
+                      }
+                    }
+                  }
+                ],
+                "produces": [
+                  "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Create Success",
+                        "examples": {
+                            "result" : {
+                                "user" : {
+                                    "name" : "string",
+                                    "email" : "string",
+                                    "boards" : "array"
+                                },
+                                "token" : "string"
+                            }
+                        }
+                    },
+                    "422" : {
+                        "description": "Email or Password Incorrect"
+                    }
+                }
+            }
+        },
+        "/boards?page={page}&page_size={page_size}&sort={sortField:orderBy}&q={queryString}" : {
+            "get" : {
+                "tags": [
+                    "Boards"
+                ],
+                "description": "Get all boards of this User who logged in system",
+                "parameters": [{
+                    "type": "string",
+                    "name": "Token",
+                    "in": "header",
+                    "description": "Bearer Token"
+                },{
+                    "type": "string",
+                    "name": "page",
+                    "in": "query",
+                    "description": "page number"
+                },{
+                    "type": "string",
+                    "name": "page_size",
+                    "in": "query",
+                    "description": "Amount items in 1 page"
+                },{
+                    "type": "string",
+                    "name": "sort",
+                    "in": "query",
+                    "description": "Sort by one field in Schema"
+                },{
+                    "type": "string",
+                    "name": "q",
+                    "in": "query",
+                    "description": "query String which you want to search"
+                }],
+                "responses": {
+                    "200": {
+                        "description": "Get all boards of User",
+                        "examples": {
+                            "result" : [
+                                {
+                                    "_id" : "Board Id",
+                                    "title" : "Board Title",
+                                    "description" : "Board Description"
+                                },
+                                {
+                                    "_id" : "Board Id",
+                                    "title" : "Board Title",
+                                    "description" : "Board Description"
+                                }
+                            ]
+                        }
+                    },
+                    "422" : {
+                        "description": "SortField Incorrect"
+                    }
+                }
+            }
+        },
+        "/boards" : {
+            "post": {
+                "tags": [
+                  "Boards"
+                ],
+                "description": "Create new boards into system",
+                "parameters": [
+                  {
+                    "name": "user",
+                    "in": "body",
+                    "description": "Email & Password of User that we want to login",
+                    "schema": {
+                      "example" : {
+                          "email" : "string",
+                          "password" : "string"
+                      }
+                    }
+                  }
+                ],
+                "produces": [
+                  "application/json"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Create Success",
+                        "examples": {
+                            "result" : {
+                                "_id": "string",
+                                "title": "string",
+                                "members": [
+                                    {
+                                        "isAdmin": "boolean",
+                                        "userId": "string"
+                                    }
+                                ],
+                                "description": "string",
+                                "lists": []
+                            }
+                        }
+                    },
+                    "400" : {
+                        "description": "Title or Description Invalid"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "User": {
+          "required": [
+            "email",
+            "name",
+            "password"
+          ],
+          "properties": {
+            "_id": {
+              "type": "string",
+              "uniqueItems": true
+            },
+            "name": {
+                "type": "string"
+            },
+            "email": {
+              "type": "string",
+              "uniqueItems": true
+            },
+            "password": {
+              "type": "string"
+            }
+          }
+        },
+        "Boards": {
+            "required": [
+              "title",
+              "description"
+            ],
+            "properties": {
+                "_id": {
+                    "type": "string",
+                    "uniqueItems": true
+                },
+                "title": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "members" : {
+                    "type" : "array"
+                },
+                "lists" : {
+                    "type" : "array"
+                }
+            }
+        }
+    }
+}

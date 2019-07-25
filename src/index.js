@@ -1,6 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
+const swaggerUI = require('swagger-ui-express');
+const swaggerDocument = require('../swagger.json');
 require('dotenv').config();
 
 const db = require('./configs/db');
@@ -20,7 +22,7 @@ app.use(bodyParser.urlencoded({ extended : false }));
 app.get('/', function(req, res) {
   res.status(200).send({url : 'http://localhost:5050/uploads/1563856223746-heo.jpeg'});
 });
-
+app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
 app.use('/api', apiRoute);
 
 app.use(function(err, req, res, next) {
