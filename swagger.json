@@ -117,7 +117,7 @@
                 "description": "Get all boards of this User who logged in system",
                 "parameters": [{
                     "type": "string",
-                    "name": "Token",
+                    "name": "Authorization",
                     "in": "header",
                     "description": "Bearer Token"
                 },{
@@ -172,17 +172,25 @@
                 ],
                 "description": "Create new boards into system",
                 "parameters": [
-                  {
-                    "name": "user",
-                    "in": "body",
-                    "description": "Email & Password of User that we want to login",
-                    "schema": {
-                      "example" : {
-                          "email" : "string",
-                          "password" : "string"
-                      }
+                    {
+                        "type": "string",
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer Token"
+                    },
+                    {
+                        "name": "title and description",
+                        "in": "body",
+                        "description": "Title & Desciption of Board that we want to login",
+                        "schema": 
+                        {
+                            "example" : 
+                                {
+                                    "title" : "string",
+                                    "description" : "string"
+                                }
+                        }
                     }
-                  }
                 ],
                 "produces": [
                   "application/json"
@@ -207,6 +215,40 @@
                     },
                     "400" : {
                         "description": "Title or Description Invalid"
+                    }
+                }
+            },
+            "get" : {
+                "tags": [
+                    "Boards"
+                ],
+                "description": "Get all boards of this User who logged in system",
+                "parameters": [{
+                    "type": "string",
+                    "name": "Authorization",
+                    "in": "header",
+                    "description": "Bearer Token"
+                }],
+                "responses": {
+                    "200": {
+                        "description": "Get all boards of User",
+                        "examples": {
+                            "result" : [
+                                {
+                                    "_id" : "Board Id",
+                                    "title" : "Board Title",
+                                    "description" : "Board Description"
+                                },
+                                {
+                                    "_id" : "Board Id",
+                                    "title" : "Board Title",
+                                    "description" : "Board Description"
+                                }
+                            ]
+                        }
+                    },
+                    "401" : {
+                        "description": "UnAuthorized!"
                     }
                 }
             }
